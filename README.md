@@ -11,7 +11,7 @@
 
 | Mosaic Grid | Flip Board | Info Tiles |
 | --- | --- | --- |
-| ![Mosaic Grid](assets/screenshots/mosaic-grid.png) | ![Flip Board](assets/screenshots/flip-board.png) | ![Info Tiles](assets/screenshots/info-tiles.png) |
+| [![Mosaic Grid](assets/screenshots/mosaic-grid.png)](mosaic-grid/) | [![Flip Board](assets/screenshots/flip-board.png)](flip-board/) | [![Info Tiles](assets/screenshots/info-tiles.png)](info-tiles/) |
 
 Каждая папка является отдельным Pebble-проектом со своим UUID и собирается в
 отдельный `.pbw`. Это важно: в Appstore они публикуются как три отдельные

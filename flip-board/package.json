@@ -1,7 +1,7 @@
 {
   "name": "flip-board",
   "author": "Kirill Baldin",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "keywords": ["pebble-app", "watchface", "flip-clock", "pixel", "emery"],
   "private": true,
   "dependencies": {},
