@@ -1,0 +1,28 @@
+{
+  "name": "info-tiles",
+  "author": "Kirill Baldin",
+  "version": "1.0.0",
+  "keywords": ["pebble-app", "watchface", "weather", "health", "pixel", "emery"],
+  "private": true,
+  "dependencies": {},
+  "pebble": {
+    "displayName": "Info Tiles",
+    "uuid": "b5f1a84a-dc4b-47cd-a0ee-9af01d83a6e0",
+    "sdkVersion": "3",
+    "enableMultiJS": true,
+    "targetPlatforms": ["emery"],
+    "watchapp": {
+      "watchface": true
+    },
+    "capabilities": ["health", "location"],
+    "messageKeys": [
+      "TEMPERATURE",
+      "WEATHER_CODE",
+      "REQUEST_WEATHER"
+    ],
+    "resources": {
+      "media": []
+    }
+  }
+}
+
