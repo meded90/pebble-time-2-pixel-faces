@@ -41,6 +41,70 @@ flip-board/build/*.pbw
 info-tiles/build/*.pbw
 ```
 
+## Локальная разработка и тестирование
+
+Отдельного веб-сервера у Pebble-проектов нет. Роль dev server выполняет
+эмулятор из Pebble SDK: CLI собирает watchface, запускает Pebble Time 2
+(`emery`) и устанавливает в него свежий `.pbw`.
+
+Проверьте, что CLI и SDK доступны:
+
+```bash
+pebble --version
+pebble sdk list
+```
+
+Запустите один из watchface, например `mosaic-grid`:
+
+```bash
+cd mosaic-grid
+pebble build
+pebble install --emulator emery --logs
+```
+
+Откроется окно эмулятора, а в терминале появятся логи приложения. Чтобы
+проверить изменения в коде, остановите вывод логов через `Ctrl+C`, снова
+соберите проект и переустановите его в уже запущенный эмулятор:
+
+```bash
+pebble build
+pebble install --emulator emery --logs
+```
+
+Для запуска другого watchface перейдите из корня репозитория в
+`flip-board` или `info-tiles` и выполните те же две команды.
+
+Полезные команды для проверки состояний:
+
+```bash
+# Переключить формат времени
+pebble emu-time-format --emulator emery --format 12h
+pebble emu-time-format --emulator emery --format 24h
+
+# Проверить уровни заряда
+pebble emu-battery --emulator emery --percent 9
+pebble emu-battery --emulator emery --percent 100 --charging
+
+# Данные Pebble Health для info-tiles
+pebble emu-steps --emulator emery 12345
+pebble emu-heart-rate --emulator emery 72
+
+# Сохранить скриншот текущего экрана
+pebble screenshot --emulator emery screenshot.png
+```
+
+Если эмулятор завис, показывает старую сборку или пустой экран, сбросьте его и
+установите watchface заново:
+
+```bash
+pebble kill
+pebble wipe
+pebble build
+pebble install --emulator emery --logs
+```
+
+`pebble wipe` удаляет данные эмулятора, но не исходники проекта.
+
 Проверенные релизные копии уже собраны в `dist/`:
 
 ```text
@@ -65,7 +129,9 @@ pebble install --cloudpebble
 ## Особенности
 
 - Циферблаты рассчитаны нативно на 200×228, а не запускаются в bezel mode.
-- Время обновляется раз в минуту, заряд — по событию Battery State Service.
+- Время обновляется раз в минуту, заряд — по событию Battery State Service;
+  в `flip-board` изменившиеся карточки механически переворачиваются через
+  центральный шарнир.
 - `info-tiles` использует Pebble Health для шагов и пульса.
 - `info-tiles` запрашивает GPS телефона и текущую погоду у Open‑Meteo каждые
   30 минут; API-ключ не требуется.
