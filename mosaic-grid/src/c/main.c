@@ -165,7 +165,7 @@ static void canvas_update_proc(Layer *layer, GContext *ctx) {
   strftime(hour, sizeof(hour), clock_is_24h_style() ? "%H" : "%I", &s_now);
   strftime(minute, sizeof(minute), "%M", &s_now);
 
-  draw_pixel_number(ctx, hour, GRect(8, 4, left_w - 16, 82),
+  draw_pixel_number(ctx, hour, GRect(8, 8, left_w - 16, 82),
                     PIXEL_FONT_VARIANT);
   draw_pixel_number(ctx, minute, GRect(8, 95, left_w - 16, 82),
                     PIXEL_FONT_VARIANT);
