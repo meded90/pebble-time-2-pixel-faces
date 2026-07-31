@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.2.0
+
+- Added phone-side color settings for the background, panel lines and hinges,
+  and digits.
+- Added six curated color presets with manual fine-tuning.
+- Saved selected colors on the watch so they persist between launches.
+- Kept the original gray palette as the default Classic Gray preset.
+
 ## 1.1.1
 
 - Refined the flip panels with stronger depth, cleaner shadows, and highlights
