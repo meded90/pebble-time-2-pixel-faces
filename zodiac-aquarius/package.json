@@ -1,0 +1,36 @@
+{
+  "name": "zodiac-aquarius",
+  "author": "Kirill Baldin",
+  "version": "1.0.0",
+  "keywords": [
+    "pebble-app",
+    "watchface",
+    "zodiac",
+    "aquarius",
+    "emery"
+  ],
+  "private": true,
+  "dependencies": {},
+  "pebble": {
+    "displayName": "Зодиак Водолей",
+    "uuid": "a141475c-3bde-441b-ae97-e2f39962fb75",
+    "sdkVersion": "3",
+    "enableMultiJS": true,
+    "targetPlatforms": [
+      "emery"
+    ],
+    "watchapp": {
+      "watchface": true
+    },
+    "messageKeys": [],
+    "resources": {
+      "media": [
+        {
+          "type": "bitmap",
+          "name": "IMAGE_BACKGROUND",
+          "file": "images/background.png"
+        }
+      ]
+    }
+  }
+}

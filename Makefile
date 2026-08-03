@@ -1,12 +1,14 @@
-FACES := mosaic-grid flip-board info-tiles
+FACES := mosaic-grid flip-board info-tiles codex-weekly
+APPS := voice-drop
+PROJECTS := $(FACES) $(APPS)
 PEBBLE ?= pebble
 
-.PHONY: build clean $(FACES)
+.PHONY: build clean $(PROJECTS)
 
-build: $(FACES)
+build: $(PROJECTS)
 
-$(FACES):
+$(PROJECTS):
 	cd $@ && $(PEBBLE) build
 
 clean:
-	for face in $(FACES); do (cd $$face && $(PEBBLE) clean); done
+	for project in $(PROJECTS); do (cd $$project && $(PEBBLE) clean); done

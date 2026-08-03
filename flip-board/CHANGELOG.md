@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.1
+
+- Added Pebble and RePebble application icons based on the four-panel flip clock.
+
 ## 1.2.0
 
 - Added phone-side color settings for the background, panel lines and hinges,

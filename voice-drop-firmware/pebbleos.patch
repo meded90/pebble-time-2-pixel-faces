@@ -1,0 +1,1128 @@
+diff --git a/include/pbl/services/voice/voice_drop.h b/include/pbl/services/voice/voice_drop.h
+new file mode 100644
+index 0000000000000000000000000000000000000000..5be678145fc950e85b8d075e8f46c77d89fff8a7
+--- /dev/null
++++ b/include/pbl/services/voice/voice_drop.h
+@@ -0,0 +1,108 @@
++/* SPDX-FileCopyrightText: 2026 Voice Drop contributors */
++/* SPDX-License-Identifier: Apache-2.0 */
++
++#pragma once
++
++#include <stddef.h>
++#include <stdint.h>
++
++#include "applib/voice/voice_drop.h"
++#include "pbl/services/comm_session/session.h"
++
++#define VOICE_DROP_PROTOCOL_ENDPOINT 10001
++#define VOICE_DROP_SYNC_INTERVAL_MS (30U * 60U * 1000U)
++#define VOICE_DROP_STORAGE_LIMIT_BYTES (8U * 1024U * 1024U)
++
++typedef enum {
++  VoiceDropCommandList = 1,
++  VoiceDropCommandFetchChunk = 2,
++  VoiceDropCommandDataAck = 3,
++  VoiceDropCommandRecordingAck = 4,
++} VoiceDropCommand;
++
++typedef enum {
++  VoiceDropMessageQueueStatus = 0x81,
++  VoiceDropMessageRecordingMeta = 0x82,
++  VoiceDropMessageChunkData = 0x83,
++  VoiceDropMessageChunkDone = 0x84,
++  VoiceDropMessageRecordingDone = 0x85,
++  VoiceDropMessageError = 0xff,
++} VoiceDropMessage;
++
++typedef struct __attribute__((__packed__)) {
++  uint8_t command;
++  uint32_t after_recording_id;
++} VoiceDropListRequest;
++
++typedef struct __attribute__((__packed__)) {
++  uint8_t command;
++  uint32_t recording_id;
++  uint16_t chunk_index;
++  uint32_t offset;
++} VoiceDropFetchRequest;
++
++typedef VoiceDropFetchRequest VoiceDropDataAck;
++
++typedef struct __attribute__((__packed__)) {
++  uint8_t command;
++  uint32_t recording_id;
++} VoiceDropRecordingAck;
++
++typedef struct __attribute__((__packed__)) {
++  uint8_t message;
++  uint16_t recording_count;
++  uint32_t total_bytes;
++} VoiceDropQueueStatusMessage;
++
++typedef struct __attribute__((__packed__)) {
++  uint8_t message;
++  uint32_t recording_id;
++  uint32_t started_at;
++  uint32_t duration_ms;
++  uint32_t frame_count;
++  uint32_t payload_bytes;
++  uint32_t payload_crc32;
++  uint16_t chunk_count;
++  uint16_t sample_rate;
++  uint16_t bit_rate;
++  uint16_t frame_size;
++  uint8_t channels;
++  uint8_t speex_bitstream_version;
++} VoiceDropRecordingMetaMessage;
++
++#define VOICE_DROP_CHUNK_DATA_MAX 220
++
++typedef struct __attribute__((__packed__)) {
++  uint8_t message;
++  uint32_t recording_id;
++  uint16_t chunk_index;
++  uint32_t offset;
++  uint32_t chunk_size;
++  uint8_t data_size;
++  uint8_t data[VOICE_DROP_CHUNK_DATA_MAX];
++} VoiceDropChunkDataMessage;
++
++typedef struct __attribute__((__packed__)) {
++  uint8_t message;
++  uint32_t recording_id;
++  uint16_t chunk_index;
++  uint32_t chunk_size;
++} VoiceDropChunkDoneMessage;
++
++typedef struct __attribute__((__packed__)) {
++  uint8_t message;
++  uint32_t recording_id;
++} VoiceDropRecordingDoneMessage;
++
++typedef struct __attribute__((__packed__)) {
++  uint8_t message;
++  int16_t error;
++  uint32_t recording_id;
++} VoiceDropErrorMessage;
++
++void voice_drop_init(void);
++void voice_drop_protocol_msg_callback(CommSession *session, const uint8_t *data, size_t size);
++
++VoiceDropResult sys_voice_drop_start(void);
++VoiceDropResult sys_voice_drop_stop(void);
++bool sys_voice_drop_get_status(VoiceDropStatus *status);
+diff --git a/src/fw/applib/voice/voice_drop.c b/src/fw/applib/voice/voice_drop.c
+new file mode 100644
+index 0000000000000000000000000000000000000000..c9f683e399b985b15384959d335cc618b35d309b
+--- /dev/null
++++ b/src/fw/applib/voice/voice_drop.c
+@@ -0,0 +1,18 @@
++/* SPDX-FileCopyrightText: 2026 Voice Drop contributors */
++/* SPDX-License-Identifier: Apache-2.0 */
++
++#include "voice_drop.h"
++
++#include "syscall/syscall.h"
++
++VoiceDropResult voice_drop_start(void) {
++  return sys_voice_drop_start();
++}
++
++VoiceDropResult voice_drop_stop(void) {
++  return sys_voice_drop_stop();
++}
++
++bool voice_drop_get_status(VoiceDropStatus *status) {
++  return sys_voice_drop_get_status(status);
++}
+diff --git a/src/fw/applib/voice/voice_drop.h b/src/fw/applib/voice/voice_drop.h
+new file mode 100644
+index 0000000000000000000000000000000000000000..2fbde0e86a30ca6ebfcfdd6d06cf422d04163890
+--- /dev/null
++++ b/src/fw/applib/voice/voice_drop.h
+@@ -0,0 +1,43 @@
++/* SPDX-FileCopyrightText: 2026 Voice Drop contributors */
++/* SPDX-License-Identifier: Apache-2.0 */
++
++#pragma once
++
++#include <stdbool.h>
++#include <stdint.h>
++
++//! State of the offline Voice Drop recorder.
++typedef enum {
++  VoiceDropStateIdle = 0,
++  VoiceDropStateRecording = 1,
++  VoiceDropStateStopping = 2,
++  VoiceDropStateSyncing = 3,
++  VoiceDropStateError = 4,
++} VoiceDropState;
++
++//! Result returned by Voice Drop control calls.
++typedef enum {
++  VoiceDropResultSuccess = 0,
++  VoiceDropResultBusy = 1,
++  VoiceDropResultNoSpace = 2,
++  VoiceDropResultUnavailable = 3,
++  VoiceDropResultInternalError = 4,
++} VoiceDropResult;
++
++//! Snapshot of recorder and queue state.
++typedef struct {
++  VoiceDropState state;
++  uint32_t elapsed_seconds;
++  uint32_t queued_bytes;
++  uint16_t queued_recordings;
++  int16_t last_error;
++} VoiceDropStatus;
++
++//! Start an offline recording using the watch microphone.
++VoiceDropResult voice_drop_start(void);
++
++//! Stop and finalize the current offline recording.
++VoiceDropResult voice_drop_stop(void);
++
++//! Copy the current recorder and queue status into @p status.
++bool voice_drop_get_status(VoiceDropStatus *status);
+diff --git a/src/fw/process_management/pebble_process_info.h b/src/fw/process_management/pebble_process_info.h
+index c17740648075f634c682b9d7e19fc9a4dc4206ff..147dab3d2784bb93ad29c34e680792229bcb4b7d 100644
+--- a/src/fw/process_management/pebble_process_info.h
++++ b/src/fw/process_management/pebble_process_info.h
+@@ -172,9 +172,10 @@ typedef enum {
+ // sdk.major:0x5 .minor:0x68 -- Expose gesture recognizer API (tap/pan/swipe + window attach/detach) to apps (rev 107)
+ // sdk.major:0x5 .minor:0x69 -- Add app_touch_navigation_enable() opt-in for third-party touch nav (rev 108)
+ // sdk.major:0x5 .minor:0x6a -- Add HRV sampling API (health_service_set_hrv_sample_period) (rev 109)
++// sdk.major:0x5 .minor:0x6b -- Add offline Voice Drop recorder API (rev 110)
+ 
+ #define PROCESS_INFO_CURRENT_SDK_VERSION_MAJOR 0x5
+-#define PROCESS_INFO_CURRENT_SDK_VERSION_MINOR 0x6a
++#define PROCESS_INFO_CURRENT_SDK_VERSION_MINOR 0x6b
+ 
+ // The first SDK to ship with 2.x APIs
+ #define PROCESS_INFO_FIRST_2X_SDK_VERSION_MAJOR 0x4
+@@ -284,4 +285,3 @@ typedef struct __attribute__((__packed__)) {
+   } uuid;                           //!< The process's UUID
+ } LegacyPebbleAppInfo;
+ 
+-
+diff --git a/src/fw/services/comm_session/protocol_endpoints_table.json b/src/fw/services/comm_session/protocol_endpoints_table.json
+index 0398df07c273309e5aa4a1bcfbd54151970a053e..871a05646495f04cdc1ce05dd4367fa2f4954ac0 100644
+--- a/src/fw/services/comm_session/protocol_endpoints_table.json
++++ b/src/fw/services/comm_session/protocol_endpoints_table.json
+@@ -45,6 +45,7 @@
+     [ 6778,  "0x1a7a", "private", "data_logging_protocol_msg_callback", null, null ],
+     [ 8000,  "0x1f40", "private", "screenshot_protocol_msg_callback", null, null ],
+     [ 10000, "0x2710", "private", "audio_endpoint_protocol_msg_callback", null, null ],
++    [ 10001, "0x2711", "private", "voice_drop_protocol_msg_callback", null, null ],
+     [ 11000, "0x2af8", "private", "voice_endpoint_protocol_msg_callback", null, null ],
+     [ 11440, "0x2cb0", "private", "timeline_action_endpoint_protocol_msg_callback", null, null ],
+     [ 43981, "0xabcd", "private", "app_order_protocol_msg_callback", null, null ],
+diff --git a/src/fw/services/services_normal/service.c b/src/fw/services/services_normal/service.c
+index e239a6c9ca49768642db22e350852b8cc50e362b..fe90e8971d6b376bcf76009c3f7484930d3bac4e 100644
+--- a/src/fw/services/services_normal/service.c
++++ b/src/fw/services/services_normal/service.c
+@@ -41,6 +41,9 @@
+ 
+ #include "pbl/services/activity/activity.h"
+ #include "pbl/services/voice/voice.h"
++#ifdef CONFIG_SERVICE_VOICE_DROP
++#include "pbl/services/voice/voice_drop.h"
++#endif
+ 
+ #include "pbl/util/size.h"
+ 
+@@ -127,6 +130,10 @@ void services_normal_init(void) {
+   voice_init();
+ #endif
+ 
++#ifdef CONFIG_SERVICE_VOICE_DROP
++  voice_drop_init();
++#endif
++
+   app_glance_service_init();
+ }
+ 
+diff --git a/src/fw/services/voice/Kconfig b/src/fw/services/voice/Kconfig
+index db67970bf84ef336b7e64dae4499f64925f318d9..4ce541225db936961da28d1340961b42709edfb9 100644
+--- a/src/fw/services/voice/Kconfig
++++ b/src/fw/services/voice/Kconfig
+@@ -14,3 +14,19 @@ module-str = Voice
+ source "subsys/logging/Kconfig.template.log_level"
+ 
+ endif
++
++config SERVICE_VOICE_DROP
++    bool "Offline Voice Drop recorder"
++    default y if PLATFORM_EMERY
++    depends on SERVICE_VOICE && SERVICE_FILESYSTEM && SERVICE_NEW_TIMER && SERVICE_COMM_SESSION
++    help
++      Record Speex audio to the watch filesystem and synchronize it over a
++      reliable Pebble Protocol endpoint every 30 minutes.
++
++if SERVICE_VOICE_DROP
++
++module = SERVICE_VOICE_DROP
++module-str = Voice Drop
++source "subsys/logging/Kconfig.template.log_level"
++
++endif
+diff --git a/src/fw/services/voice/voice_drop.c b/src/fw/services/voice/voice_drop.c
+new file mode 100644
+index 0000000000000000000000000000000000000000..23731cef0ebb1cefbc63eb4fff18c1a830924c5d
+--- /dev/null
++++ b/src/fw/services/voice/voice_drop.c
+@@ -0,0 +1,754 @@
++/* SPDX-FileCopyrightText: 2026 Voice Drop contributors */
++/* SPDX-License-Identifier: Apache-2.0 */
++
++#include "pbl/services/voice/voice_drop.h"
++
++#include "board/board.h"
++#include "kernel/pbl_malloc.h"
++#include "pbl/drivers/mic.h"
++#include "pbl/drivers/rtc.h"
++#include "pbl/logging/logging.h"
++#include "pbl/os/mutex.h"
++#include "pbl/services/filesystem/pfs.h"
++#include "pbl/services/new_timer/new_timer.h"
++#include "pbl/services/system_task.h"
++#include "pbl/services/voice/voice_speex.h"
++#include "pbl/services/voice_endpoint.h"
++#include "pbl/util/crc32.h"
++#include "syscall/syscall_internal.h"
++#include "system/status_codes.h"
++
++#include <inttypes.h>
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++
++#ifdef CONFIG_SERVICE_VOICE_DROP
++
++PBL_LOG_MODULE_DEFINE(service_voice_drop, CONFIG_SERVICE_VOICE_DROP_LOG_LEVEL);
++
++#define VOICE_DROP_CHUNK_BUFFER_SIZE (16U * 1024U)
++#define VOICE_DROP_META_PREFIX "vdm-"
++#define VOICE_DROP_CHUNK_PREFIX "vdc-"
++#define VOICE_DROP_META_MAGIC 0x314d4456U
++#define VOICE_DROP_META_VERSION 1
++#define VOICE_DROP_FILE_NAME_SIZE 24
++#define VOICE_DROP_SEND_TIMEOUT_MS 1000
++#define VOICE_DROP_MAX_ENCODED_FRAME_SIZE 200
++#define VOICE_DROP_MIN_FREE_PFS_BYTES (128U * 1024U)
++
++typedef struct __attribute__((__packed__)) {
++  uint32_t magic;
++  uint16_t version;
++  uint16_t size;
++  uint32_t recording_id;
++  uint32_t started_at;
++  uint32_t duration_ms;
++  uint32_t frame_count;
++  uint32_t payload_bytes;
++  uint32_t payload_crc32;
++  uint16_t chunk_count;
++  uint16_t sample_rate;
++  uint16_t bit_rate;
++  uint16_t frame_size;
++  uint8_t channels;
++  uint8_t speex_bitstream_version;
++} VoiceDropMeta;
++
++typedef struct {
++  uint8_t *data;
++  size_t length;
++  uint16_t chunk_index;
++  bool scheduled;
++} VoiceDropChunkSlot;
++
++typedef struct {
++  uint32_t recording_count;
++  uint32_t payload_bytes;
++  uint32_t highest_recording_id;
++} VoiceDropQueueSummary;
++
++static PebbleRecursiveMutex *s_lock;
++static TimerID s_sync_timer = TIMER_INVALID_ID;
++static VoiceDropState s_state = VoiceDropStateIdle;
++static int16_t s_last_error;
++static bool s_sync_active;
++static RtcTicks s_sync_last_activity_ticks;
++
++static VoiceDropChunkSlot s_slots[2];
++static uint8_t s_active_slot;
++static uint32_t s_recording_id;
++static uint32_t s_last_recording_id;
++static uint32_t s_recording_started_at;
++static RtcTicks s_recording_started_ticks;
++static uint32_t s_frame_count;
++static uint32_t s_payload_bytes;
++static uint32_t s_recording_budget_bytes;
++static uint32_t s_payload_crc32;
++static uint16_t s_next_chunk_index;
++static AudioTransferInfoSpeex s_transfer_info;
++
++static void prv_send_queue_status_task(void *context);
++static void prv_finalize_recording_task(void *context);
++static void prv_stop_after_limit_task(void *context);
++
++static bool prv_is_meta_file(const char *name) {
++  return strncmp(name, VOICE_DROP_META_PREFIX, strlen(VOICE_DROP_META_PREFIX)) == 0;
++}
++
++static bool prv_is_chunk_file(const char *name) {
++  return strncmp(name, VOICE_DROP_CHUNK_PREFIX, strlen(VOICE_DROP_CHUNK_PREFIX)) == 0;
++}
++
++static void prv_meta_file_name(char *buffer, size_t size, uint32_t recording_id) {
++  snprintf(buffer, size, VOICE_DROP_META_PREFIX "%08" PRIx32, recording_id);
++}
++
++static void prv_chunk_file_name(char *buffer, size_t size, uint32_t recording_id,
++                                uint16_t chunk_index) {
++  snprintf(buffer, size, VOICE_DROP_CHUNK_PREFIX "%08" PRIx32 "-%04" PRIx16,
++           recording_id, chunk_index);
++}
++
++static bool prv_read_meta(uint32_t recording_id, VoiceDropMeta *meta) {
++  char name[VOICE_DROP_FILE_NAME_SIZE];
++  prv_meta_file_name(name, sizeof(name), recording_id);
++  int fd = pfs_open(name, OP_FLAG_READ, FILE_TYPE_STATIC, 0);
++  if (fd < S_SUCCESS) {
++    return false;
++  }
++  const int bytes_read = pfs_read(fd, meta, sizeof(*meta));
++  pfs_close(fd);
++  return bytes_read == (int)sizeof(*meta) && meta->magic == VOICE_DROP_META_MAGIC &&
++         meta->version == VOICE_DROP_META_VERSION && meta->size == sizeof(*meta) &&
++         meta->recording_id == recording_id;
++}
++
++static VoiceDropQueueSummary prv_scan_queue(void) {
++  VoiceDropQueueSummary summary = {0};
++  PFSFileListEntry *list = pfs_create_file_list(prv_is_meta_file);
++  for (PFSFileListEntry *entry = list; entry;
++       entry = (PFSFileListEntry *)entry->list_node.next) {
++    const uint32_t recording_id = (uint32_t)strtoul(entry->name + 4, NULL, 16);
++    VoiceDropMeta meta;
++    if (!prv_read_meta(recording_id, &meta)) {
++      continue;
++    }
++    summary.recording_count++;
++    summary.payload_bytes += meta.payload_bytes;
++    if (recording_id > summary.highest_recording_id) {
++      summary.highest_recording_id = recording_id;
++    }
++  }
++  pfs_delete_file_list(list);
++  return summary;
++}
++
++static void prv_delete_recording(uint32_t recording_id) {
++  VoiceDropMeta meta;
++  if (prv_read_meta(recording_id, &meta)) {
++    for (uint16_t chunk = 0; chunk < meta.chunk_count; ++chunk) {
++      char name[VOICE_DROP_FILE_NAME_SIZE];
++      prv_chunk_file_name(name, sizeof(name), recording_id, chunk);
++      pfs_remove(name);
++      system_task_watchdog_feed();
++    }
++  }
++  char meta_name[VOICE_DROP_FILE_NAME_SIZE];
++  prv_meta_file_name(meta_name, sizeof(meta_name), recording_id);
++  pfs_remove(meta_name);
++}
++
++static void prv_remove_orphan_chunks(void) {
++  PFSFileListEntry *list = pfs_create_file_list(prv_is_chunk_file);
++  for (PFSFileListEntry *entry = list; entry;
++       entry = (PFSFileListEntry *)entry->list_node.next) {
++    const uint32_t recording_id = (uint32_t)strtoul(entry->name + 4, NULL, 16);
++    VoiceDropMeta meta;
++    if (!prv_read_meta(recording_id, &meta)) {
++      pfs_remove(entry->name);
++      system_task_watchdog_feed();
++    }
++  }
++  pfs_delete_file_list(list);
++}
++
++static bool prv_send(const void *message, size_t size) {
++  return comm_session_send_data(comm_session_get_system_session(), VOICE_DROP_PROTOCOL_ENDPOINT,
++                                message, size, VOICE_DROP_SEND_TIMEOUT_MS);
++}
++
++static void prv_send_error(int16_t error, uint32_t recording_id) {
++  const VoiceDropErrorMessage message = {
++    .message = VoiceDropMessageError,
++    .error = error,
++    .recording_id = recording_id,
++  };
++  prv_send(&message, sizeof(message));
++}
++
++static void prv_send_queue_status_task(void *context) {
++  const VoiceDropQueueSummary summary = prv_scan_queue();
++  const VoiceDropQueueStatusMessage message = {
++    .message = VoiceDropMessageQueueStatus,
++    .recording_count = (uint16_t)summary.recording_count,
++    .total_bytes = summary.payload_bytes,
++  };
++  prv_send(&message, sizeof(message));
++}
++
++static void prv_sync_timer_callback(void *context) {
++  system_task_add_callback(prv_send_queue_status_task, NULL);
++}
++
++static bool prv_write_chunk(VoiceDropChunkSlot *slot) {
++  char name[VOICE_DROP_FILE_NAME_SIZE];
++  prv_chunk_file_name(name, sizeof(name), s_recording_id, slot->chunk_index);
++  int fd = pfs_open(name, OP_FLAG_WRITE, FILE_TYPE_STATIC, slot->length);
++  if (fd < S_SUCCESS) {
++    PBL_LOG_ERR("Failed to create chunk %s: %d", name, fd);
++    return false;
++  }
++  const int written = pfs_write(fd, slot->data, slot->length);
++  const status_t close_result = pfs_close(fd);
++  if (written != (int)slot->length || close_result != S_SUCCESS) {
++    PBL_LOG_ERR("Failed to write chunk %s", name);
++    pfs_remove(name);
++    return false;
++  }
++  return true;
++}
++
++static void prv_flush_slot_task(void *context) {
++  VoiceDropChunkSlot *slot = context;
++  mutex_lock_recursive(s_lock);
++  if (!slot->scheduled) {
++    mutex_unlock_recursive(s_lock);
++    return;
++  }
++  const bool success = prv_write_chunk(slot);
++  if (!success) {
++    s_last_error = E_OUT_OF_STORAGE;
++    s_state = VoiceDropStateError;
++  }
++  slot->length = 0;
++  slot->scheduled = false;
++  mutex_unlock_recursive(s_lock);
++}
++
++static bool prv_schedule_slot(VoiceDropChunkSlot *slot) {
++  if (!slot->data || slot->length == 0 || slot->scheduled) {
++    return slot->length == 0;
++  }
++  slot->chunk_index = s_next_chunk_index++;
++  slot->scheduled = true;
++  if (!system_task_add_callback(prv_flush_slot_task, slot)) {
++    slot->scheduled = false;
++    s_next_chunk_index--;
++    return false;
++  }
++  return true;
++}
++
++static VoiceDropChunkSlot *prv_find_free_slot(void) {
++  for (size_t i = 0; i < 2; ++i) {
++    if (!s_slots[i].scheduled && s_slots[i].length == 0) {
++      s_active_slot = (uint8_t)i;
++      return &s_slots[i];
++    }
++  }
++  return NULL;
++}
++
++static void prv_audio_data_handler(int16_t *samples, size_t sample_count, void *context) {
++  mutex_lock_recursive(s_lock);
++  if (s_state != VoiceDropStateRecording) {
++    mutex_unlock_recursive(s_lock);
++    return;
++  }
++  if (sample_count != (size_t)voice_speex_get_frame_size()) {
++    s_last_error = E_INVALID_ARGUMENT;
++    mutex_unlock_recursive(s_lock);
++    return;
++  }
++
++  uint8_t encoded[VOICE_DROP_MAX_ENCODED_FRAME_SIZE];
++  const int encoded_size = voice_speex_encode_frame(samples, encoded, sizeof(encoded));
++  if (encoded_size <= 0 || encoded_size > UINT8_MAX) {
++    s_last_error = E_INTERNAL;
++    mutex_unlock_recursive(s_lock);
++    return;
++  }
++
++  VoiceDropChunkSlot *slot = &s_slots[s_active_slot];
++  const size_t frame_record_size = sizeof(uint8_t) + (size_t)encoded_size;
++  if (s_payload_bytes + frame_record_size > s_recording_budget_bytes) {
++    s_state = VoiceDropStateStopping;
++    if (!system_task_add_callback(prv_stop_after_limit_task, NULL)) {
++      s_state = VoiceDropStateError;
++      s_last_error = E_BUSY;
++    }
++    mutex_unlock_recursive(s_lock);
++    return;
++  }
++  if (slot->length + frame_record_size > VOICE_DROP_CHUNK_BUFFER_SIZE) {
++    if (!prv_schedule_slot(slot)) {
++      s_last_error = E_BUSY;
++      mutex_unlock_recursive(s_lock);
++      return;
++    }
++    slot = prv_find_free_slot();
++    if (!slot) {
++      s_last_error = E_BUSY;
++      mutex_unlock_recursive(s_lock);
++      return;
++    }
++  }
++
++  const uint8_t frame_size = (uint8_t)encoded_size;
++  slot->data[slot->length++] = frame_size;
++  memcpy(&slot->data[slot->length], encoded, frame_size);
++  slot->length += frame_size;
++  s_payload_crc32 = crc32(s_payload_crc32, &frame_size, sizeof(frame_size));
++  s_payload_crc32 = crc32(s_payload_crc32, encoded, frame_size);
++  s_payload_bytes += frame_record_size;
++  s_frame_count++;
++  mutex_unlock_recursive(s_lock);
++}
++
++static void prv_free_recording_buffers(void) {
++  for (size_t i = 0; i < 2; ++i) {
++    kernel_free(s_slots[i].data);
++    s_slots[i] = (VoiceDropChunkSlot){0};
++  }
++}
++
++static bool prv_write_meta(void) {
++  const RtcTicks elapsed_ticks = rtc_get_ticks() - s_recording_started_ticks;
++  const uint32_t duration_ms = (uint32_t)((elapsed_ticks * 1000U) / RTC_TICKS_HZ);
++  const VoiceDropMeta meta = {
++    .magic = VOICE_DROP_META_MAGIC,
++    .version = VOICE_DROP_META_VERSION,
++    .size = sizeof(VoiceDropMeta),
++    .recording_id = s_recording_id,
++    .started_at = s_recording_started_at,
++    .duration_ms = duration_ms,
++    .frame_count = s_frame_count,
++    .payload_bytes = s_payload_bytes,
++    .payload_crc32 = s_payload_crc32,
++    .chunk_count = s_next_chunk_index,
++    .sample_rate = (uint16_t)s_transfer_info.sample_rate,
++    .bit_rate = s_transfer_info.bit_rate,
++    .frame_size = s_transfer_info.frame_size,
++    .channels = (uint8_t)mic_get_channels(MIC),
++    .speex_bitstream_version = s_transfer_info.bitstream_version,
++  };
++
++  char name[VOICE_DROP_FILE_NAME_SIZE];
++  prv_meta_file_name(name, sizeof(name), s_recording_id);
++  int fd = pfs_open(name, OP_FLAG_WRITE, FILE_TYPE_STATIC, sizeof(meta));
++  if (fd < S_SUCCESS) {
++    return false;
++  }
++  const bool success = pfs_write(fd, &meta, sizeof(meta)) == sizeof(meta) &&
++                       pfs_close(fd) == S_SUCCESS;
++  if (!success) {
++    pfs_remove(name);
++  }
++  return success;
++}
++
++static void prv_finalize_recording_task(void *context) {
++  mutex_lock_recursive(s_lock);
++  for (size_t i = 0; i < 2; ++i) {
++    if (s_slots[i].scheduled) {
++      mutex_unlock_recursive(s_lock);
++      system_task_add_callback(prv_finalize_recording_task, NULL);
++      return;
++    }
++  }
++
++  bool success = s_last_error == 0 && s_frame_count > 0 && prv_write_meta();
++  if (!success) {
++    for (uint16_t chunk = 0; chunk < s_next_chunk_index; ++chunk) {
++      char name[VOICE_DROP_FILE_NAME_SIZE];
++      prv_chunk_file_name(name, sizeof(name), s_recording_id, chunk);
++      pfs_remove(name);
++    }
++    s_last_error = s_last_error ? s_last_error : E_INTERNAL;
++    s_state = VoiceDropStateError;
++  } else {
++    s_state = VoiceDropStateIdle;
++    s_last_error = 0;
++  }
++  prv_free_recording_buffers();
++  mutex_unlock_recursive(s_lock);
++}
++
++static VoiceDropResult prv_finish_capture(void) {
++  mic_stop(MIC);
++
++  mutex_lock_recursive(s_lock);
++  VoiceDropChunkSlot *active = &s_slots[s_active_slot];
++  if (active->length > 0 && !prv_schedule_slot(active)) {
++    s_state = VoiceDropStateError;
++    s_last_error = E_BUSY;
++  }
++  if (!system_task_add_callback(prv_finalize_recording_task, NULL)) {
++    s_state = VoiceDropStateError;
++    s_last_error = E_BUSY;
++    mutex_unlock_recursive(s_lock);
++    return VoiceDropResultInternalError;
++  }
++  mutex_unlock_recursive(s_lock);
++  return VoiceDropResultSuccess;
++}
++
++static void prv_stop_after_limit_task(void *context) {
++  prv_finish_capture();
++}
++
++static VoiceDropResult prv_start_recording(void) {
++  mutex_lock_recursive(s_lock);
++  if (s_state == VoiceDropStateRecording || s_state == VoiceDropStateStopping) {
++    mutex_unlock_recursive(s_lock);
++    return VoiceDropResultBusy;
++  }
++
++  const VoiceDropQueueSummary summary = prv_scan_queue();
++  if (summary.payload_bytes + VOICE_DROP_CHUNK_BUFFER_SIZE > VOICE_DROP_STORAGE_LIMIT_BYTES ||
++      get_available_pfs_space() < VOICE_DROP_MIN_FREE_PFS_BYTES) {
++    mutex_unlock_recursive(s_lock);
++    return VoiceDropResultNoSpace;
++  }
++
++  if (!voice_speex_is_initialized() && !voice_speex_init()) {
++    mutex_unlock_recursive(s_lock);
++    return VoiceDropResultUnavailable;
++  }
++  voice_speex_get_transfer_info(&s_transfer_info);
++  for (size_t i = 0; i < 2; ++i) {
++    s_slots[i].data = kernel_malloc(VOICE_DROP_CHUNK_BUFFER_SIZE);
++    if (!s_slots[i].data) {
++      prv_free_recording_buffers();
++      mutex_unlock_recursive(s_lock);
++      return VoiceDropResultInternalError;
++    }
++  }
++
++  uint32_t candidate_id = (uint32_t)rtc_get_time();
++  if (candidate_id <= s_last_recording_id) {
++    candidate_id = s_last_recording_id + 1;
++  }
++  s_recording_id = candidate_id ? candidate_id : 1;
++  s_last_recording_id = s_recording_id;
++  s_recording_started_at = (uint32_t)rtc_get_time();
++  s_recording_started_ticks = rtc_get_ticks();
++  s_frame_count = 0;
++  s_payload_bytes = 0;
++  s_recording_budget_bytes = VOICE_DROP_STORAGE_LIMIT_BYTES - summary.payload_bytes;
++  s_payload_crc32 = crc32(0, NULL, 0);
++  s_next_chunk_index = 0;
++  s_active_slot = 0;
++  s_last_error = 0;
++  s_state = VoiceDropStateRecording;
++
++  int16_t *frame_buffer = voice_speex_get_frame_buffer();
++  const size_t frame_samples = (size_t)voice_speex_get_frame_size();
++  if (!frame_buffer || frame_samples == 0 ||
++      !mic_start(MIC, prv_audio_data_handler, NULL, frame_buffer, frame_samples)) {
++    s_state = VoiceDropStateError;
++    s_last_error = E_BUSY;
++    prv_free_recording_buffers();
++    mutex_unlock_recursive(s_lock);
++    return VoiceDropResultBusy;
++  }
++  mutex_unlock_recursive(s_lock);
++  return VoiceDropResultSuccess;
++}
++
++static VoiceDropResult prv_stop_recording(void) {
++  mutex_lock_recursive(s_lock);
++  if (s_state != VoiceDropStateRecording &&
++      !(s_state == VoiceDropStateError && mic_is_running(MIC))) {
++    mutex_unlock_recursive(s_lock);
++    return VoiceDropResultBusy;
++  }
++  s_state = VoiceDropStateStopping;
++  mutex_unlock_recursive(s_lock);
++  return prv_finish_capture();
++}
++
++DEFINE_SYSCALL(VoiceDropResult, sys_voice_drop_start, void) {
++  return prv_start_recording();
++}
++
++DEFINE_SYSCALL(VoiceDropResult, sys_voice_drop_stop, void) {
++  return prv_stop_recording();
++}
++
++DEFINE_SYSCALL(bool, sys_voice_drop_get_status, VoiceDropStatus *status) {
++  if (!status) {
++    return false;
++  }
++  if (pebble_task_get_current() != PebbleTask_KernelMain) {
++    syscall_assert_userspace_buffer(status, sizeof(*status));
++  }
++  mutex_lock_recursive(s_lock);
++  const VoiceDropQueueSummary summary = prv_scan_queue();
++  VoiceDropState state = s_state;
++  if (state == VoiceDropStateIdle && s_sync_active) {
++    if (rtc_get_ticks() - s_sync_last_activity_ticks < 2U * 60U * RTC_TICKS_HZ) {
++      state = VoiceDropStateSyncing;
++    } else {
++      s_sync_active = false;
++    }
++  }
++  uint32_t elapsed_seconds = 0;
++  if (s_state == VoiceDropStateRecording || s_state == VoiceDropStateStopping) {
++    elapsed_seconds = (uint32_t)((rtc_get_ticks() - s_recording_started_ticks) / RTC_TICKS_HZ);
++  }
++  *status = (VoiceDropStatus) {
++    .state = state,
++    .elapsed_seconds = elapsed_seconds,
++    .queued_bytes = summary.payload_bytes,
++    .queued_recordings = (uint16_t)summary.recording_count,
++    .last_error = s_last_error,
++  };
++  mutex_unlock_recursive(s_lock);
++  return true;
++}
++
++typedef struct {
++  uint32_t after_recording_id;
++} VoiceDropListTaskContext;
++
++static void prv_list_task(void *raw_context) {
++  VoiceDropListTaskContext *context = raw_context;
++  uint32_t selected_id = 0;
++  PFSFileListEntry *list = pfs_create_file_list(prv_is_meta_file);
++  for (PFSFileListEntry *entry = list; entry;
++       entry = (PFSFileListEntry *)entry->list_node.next) {
++    const uint32_t id = (uint32_t)strtoul(entry->name + 4, NULL, 16);
++    if (id > context->after_recording_id && (!selected_id || id < selected_id)) {
++      selected_id = id;
++    }
++  }
++  pfs_delete_file_list(list);
++  kernel_free(context);
++
++  if (!selected_id) {
++    const VoiceDropRecordingDoneMessage done = {
++      .message = VoiceDropMessageRecordingDone,
++      .recording_id = 0,
++    };
++    prv_send(&done, sizeof(done));
++    return;
++  }
++  VoiceDropMeta meta;
++  if (!prv_read_meta(selected_id, &meta)) {
++    prv_send_error(E_DOES_NOT_EXIST, selected_id);
++    return;
++  }
++  const VoiceDropRecordingMetaMessage message = {
++    .message = VoiceDropMessageRecordingMeta,
++    .recording_id = meta.recording_id,
++    .started_at = meta.started_at,
++    .duration_ms = meta.duration_ms,
++    .frame_count = meta.frame_count,
++    .payload_bytes = meta.payload_bytes,
++    .payload_crc32 = meta.payload_crc32,
++    .chunk_count = meta.chunk_count,
++    .sample_rate = meta.sample_rate,
++    .bit_rate = meta.bit_rate,
++    .frame_size = meta.frame_size,
++    .channels = meta.channels,
++    .speex_bitstream_version = meta.speex_bitstream_version,
++  };
++  prv_send(&message, sizeof(message));
++}
++
++typedef struct {
++  uint32_t recording_id;
++  uint16_t chunk_index;
++  uint32_t offset;
++} VoiceDropFetchTaskContext;
++
++static void prv_fetch_task(void *raw_context) {
++  VoiceDropFetchTaskContext *context = raw_context;
++  VoiceDropMeta meta;
++  if (!prv_read_meta(context->recording_id, &meta)) {
++    prv_send_error(E_DOES_NOT_EXIST, context->recording_id);
++    goto cleanup;
++  }
++  if (context->chunk_index >= meta.chunk_count) {
++    const VoiceDropRecordingDoneMessage done = {
++      .message = VoiceDropMessageRecordingDone,
++      .recording_id = context->recording_id,
++    };
++    prv_send(&done, sizeof(done));
++    goto cleanup;
++  }
++
++  char name[VOICE_DROP_FILE_NAME_SIZE];
++  prv_chunk_file_name(name, sizeof(name), context->recording_id, context->chunk_index);
++  int fd = pfs_open(name, OP_FLAG_READ | OP_FLAG_USE_PAGE_CACHE, FILE_TYPE_STATIC, 0);
++  if (fd < S_SUCCESS) {
++    prv_send_error(fd, context->recording_id);
++    goto cleanup;
++  }
++  const uint32_t chunk_size = (uint32_t)pfs_get_file_size(fd);
++  if (context->offset >= chunk_size) {
++    pfs_close(fd);
++    const VoiceDropChunkDoneMessage done = {
++      .message = VoiceDropMessageChunkDone,
++      .recording_id = context->recording_id,
++      .chunk_index = context->chunk_index,
++      .chunk_size = chunk_size,
++    };
++    prv_send(&done, sizeof(done));
++    goto cleanup;
++  }
++  pfs_seek(fd, (int)context->offset, FSeekSet);
++  VoiceDropChunkDataMessage message = {
++    .message = VoiceDropMessageChunkData,
++    .recording_id = context->recording_id,
++    .chunk_index = context->chunk_index,
++    .offset = context->offset,
++    .chunk_size = chunk_size,
++  };
++  const size_t remaining = chunk_size - context->offset;
++  const size_t requested = remaining < sizeof(message.data) ? remaining : sizeof(message.data);
++  const int bytes_read = pfs_read(fd, message.data, requested);
++  pfs_close(fd);
++  if (bytes_read <= 0) {
++    prv_send_error(E_INTERNAL, context->recording_id);
++    goto cleanup;
++  }
++  message.data_size = (uint8_t)bytes_read;
++  prv_send(&message, offsetof(VoiceDropChunkDataMessage, data) + message.data_size);
++  s_sync_active = true;
++  s_sync_last_activity_ticks = rtc_get_ticks();
++
++cleanup:
++  kernel_free(context);
++}
++
++typedef struct {
++  uint32_t recording_id;
++} VoiceDropDeleteTaskContext;
++
++static void prv_delete_task(void *raw_context) {
++  VoiceDropDeleteTaskContext *context = raw_context;
++  prv_delete_recording(context->recording_id);
++  kernel_free(context);
++  s_sync_active = false;
++  prv_send_queue_status_task(NULL);
++}
++
++void voice_drop_protocol_msg_callback(CommSession *session, const uint8_t *data, size_t size) {
++  if (!data || size < 1) {
++    return;
++  }
++  switch (data[0]) {
++    case VoiceDropCommandList: {
++      if (size != sizeof(VoiceDropListRequest)) {
++        return;
++      }
++      VoiceDropListRequest request;
++      memcpy(&request, data, sizeof(request));
++      VoiceDropListTaskContext *context = kernel_malloc(sizeof(*context));
++      if (!context) {
++        return;
++      }
++      context->after_recording_id = request.after_recording_id;
++      if (!system_task_add_callback(prv_list_task, context)) {
++        kernel_free(context);
++      }
++      break;
++    }
++    case VoiceDropCommandFetchChunk:
++    case VoiceDropCommandDataAck: {
++      if (size != sizeof(VoiceDropFetchRequest)) {
++        return;
++      }
++      VoiceDropFetchRequest request;
++      memcpy(&request, data, sizeof(request));
++      VoiceDropFetchTaskContext *context = kernel_malloc(sizeof(*context));
++      if (!context) {
++        return;
++      }
++      *context = (VoiceDropFetchTaskContext) {
++        .recording_id = request.recording_id,
++        .chunk_index = request.chunk_index,
++        .offset = request.offset,
++      };
++      if (!system_task_add_callback(prv_fetch_task, context)) {
++        kernel_free(context);
++      }
++      break;
++    }
++    case VoiceDropCommandRecordingAck: {
++      if (size != sizeof(VoiceDropRecordingAck)) {
++        return;
++      }
++      VoiceDropRecordingAck request;
++      memcpy(&request, data, sizeof(request));
++      VoiceDropDeleteTaskContext *context = kernel_malloc(sizeof(*context));
++      if (!context) {
++        return;
++      }
++      context->recording_id = request.recording_id;
++      if (!system_task_add_callback(prv_delete_task, context)) {
++        kernel_free(context);
++      }
++      break;
++    }
++    default:
++      break;
++  }
++}
++
++void voice_drop_init(void) {
++  s_lock = mutex_create_recursive();
++  prv_remove_orphan_chunks();
++  const VoiceDropQueueSummary summary = prv_scan_queue();
++  s_last_recording_id = summary.highest_recording_id;
++  s_sync_timer = new_timer_create();
++  if (s_sync_timer != TIMER_INVALID_ID) {
++    new_timer_start(s_sync_timer, VOICE_DROP_SYNC_INTERVAL_MS, prv_sync_timer_callback, NULL,
++                    TIMER_START_FLAG_REPEATING);
++  }
++}
++
++#else
++
++DEFINE_SYSCALL(VoiceDropResult, sys_voice_drop_start, void) {
++  return VoiceDropResultUnavailable;
++}
++
++DEFINE_SYSCALL(VoiceDropResult, sys_voice_drop_stop, void) {
++  return VoiceDropResultUnavailable;
++}
++
++DEFINE_SYSCALL(bool, sys_voice_drop_get_status, VoiceDropStatus *status) {
++  if (!status) {
++    return false;
++  }
++  if (pebble_task_get_current() != PebbleTask_KernelMain) {
++    syscall_assert_userspace_buffer(status, sizeof(*status));
++  }
++  *status = (VoiceDropStatus) {
++    .state = VoiceDropStateError,
++    .last_error = E_INVALID_OPERATION,
++  };
++  return false;
++}
++
++void voice_drop_protocol_msg_callback(CommSession *session, const uint8_t *data, size_t size) {
++}
++
++void voice_drop_init(void) {
++}
++
++#endif
+diff --git a/src/fw/services/voice/wscript_build b/src/fw/services/voice/wscript_build
+index 500ebdbd3618bf86b13ba98c3e4a5672b712585a..0a54b97d6be102f918637e050e4172731b7e3064 100644
+--- a/src/fw/services/voice/wscript_build
++++ b/src/fw/services/voice/wscript_build
+@@ -5,6 +5,7 @@ sources = [
+     'transcription.c',
+     'voice.c',
+     'voice_speex.c',
++    'voice_drop.c',
+ ]
+ 
+ bld.stlib(
+@@ -13,4 +14,4 @@ bld.stlib(
+     target='services_voice',
+ )
+ 
+-bld.env.SERVICES.append('services_voice')
+\ No newline at end of file
++bld.env.SERVICES.append('services_voice')
+diff --git a/src/fw/syscall/syscall.h b/src/fw/syscall/syscall.h
+index 2334288d5ab279fa9ab97e5a4225f7a0985710e4..f8d69384d1e4fa145bf2e0ee0be095442b0c8204 100644
+--- a/src/fw/syscall/syscall.h
++++ b/src/fw/syscall/syscall.h
+@@ -26,6 +26,7 @@
+ #include "kernel/events.h"
+ #include "logging/logging_private.h"
+ #include "pbl/services/wakeup.h"
++#include "applib/voice/voice_drop.h"
+ #include "pbl/services/comm_session/session.h"
+ #include "pbl/services/evented_timer.h"
+ #include "pbl/services/activity/activity.h"
+@@ -216,6 +217,10 @@ bool sys_mobile_app_is_connected_debounced(void);
+ bool sys_pebblekit_is_connected_debounced(void);
+ 
+ bool sys_touch_service_is_enabled(void);
++
++VoiceDropResult sys_voice_drop_start(void);
++VoiceDropResult sys_voice_drop_stop(void);
++bool sys_voice_drop_get_status(VoiceDropStatus *status);
+ void sys_touch_reset(void);
+ 
+ //! Mark whether the calling task has a live raw-slot touch subscription
+diff --git a/tools/generate_native_sdk/exported_symbols.json b/tools/generate_native_sdk/exported_symbols.json
+index 7ea9c42891447808d11e9d564384e289e5827b7c..19c8f74e0e8e7054f7cac9fc1d5822f83ae614d2 100644
+--- a/tools/generate_native_sdk/exported_symbols.json
++++ b/tools/generate_native_sdk/exported_symbols.json
+@@ -4,7 +4,7 @@
+               "You should also make sure you are obeying our API design guidelines:",
+               "https://pebbletechnology.atlassian.net/wiki/display/DEV/SDK+API+Design+Guidelines"
+             ],
+-  "revision" : "109",
++  "revision" : "110",
+   "version" : "2.0",
+   "files": [
+     "include/pbl/drivers/ambient_light.h",
+@@ -63,6 +63,7 @@
+     "fw/applib/pbl_std/locale.h",
+     "fw/applib/persist.h",
+     "fw/applib/worker.h",
++    "fw/applib/voice/voice_drop.h",
+     "include/pbl/util/uuid.h",
+     "fw/process_management/app_manager.h",
+     "fw/process_management/sdk_shims.h",
+@@ -1051,6 +1052,35 @@
+               "name": "PBL_IF_MICROPHONE_ELSE"
+             }
+           ]
++        }, {
++          "type": "group",
++          "name": "Voice Drop",
++          "appOnly": true,
++          "addedRevision": "110",
++          "exports": [
++            {
++              "type": "type",
++              "name": "VoiceDropState"
++            }, {
++              "type": "type",
++              "name": "VoiceDropResult"
++            }, {
++              "type": "type",
++              "name": "VoiceDropStatus"
++            }, {
++              "type": "function",
++              "name": "voice_drop_start",
++              "addedRevision": "110"
++            }, {
++              "type": "function",
++              "name": "voice_drop_stop",
++              "addedRevision": "110"
++            }, {
++              "type": "function",
++              "name": "voice_drop_get_status",
++              "addedRevision": "110"
++            }
++          ]
+         }, {
+           "type": "group",
+           "name": "BLE Bluetooth Low Energy",

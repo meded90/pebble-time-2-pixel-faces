@@ -1,0 +1,27 @@
+{
+  "name": "voice-drop",
+  "author": "Kirill Baldin",
+  "version": "0.2.0",
+  "keywords": [
+    "pebble-app",
+    "voice",
+    "recorder",
+    "offline",
+    "emery"
+  ],
+  "private": true,
+  "pebble": {
+    "displayName": "Voice Drop",
+    "uuid": "2d89bf41-36e4-499d-9744-1b9e71188ec3",
+    "sdkVersion": "3",
+    "targetPlatforms": [
+      "emery"
+    ],
+    "watchapp": {
+      "watchface": false
+    },
+    "resources": {
+      "media": []
+    }
+  }
+}

@@ -1,20 +1,29 @@
 # Pebble Time 2 Pixel Faces
 
-Три самостоятельных watchface-приложения для Pebble Time 2 (`emery`,
+Также в репозитории есть `voice-drop` — отдельное автономное watchapp-приложение,
+которое пишет звук микрофоном Pebble Time 2, а не телефоном. Для него нужны патч
+PebbleOS, общий iOS/Android-мост в приложении Core Devices и небольшой Telegram
+сервер. Начните с [`voice-drop/README.md`](voice-drop/README.md), затем смотрите
+[`voice-drop-firmware/README.md`](voice-drop-firmware/README.md) и
+[`voice-drop-companion/README.md`](voice-drop-companion/README.md).
+
+Четыре самостоятельных watchface-приложения для Pebble Time 2 (`emery`,
 200×228, 64 цвета), созданные по выделенным референсам:
 
 1. `mosaic-grid` — крупные часы и строгая цветовая сетка.
 2. `flip-board` — тёмное механическое табло с четырьмя flip-панелями.
 3. `info-tiles` — время, дата, заряд, погода, пульс и шаги.
+4. `codex-weekly` — крупные часы, недельный лимит Codex и heatmap личного
+   использования.
 
 ## Нативные превью 200×228
 
-| Mosaic Grid | Flip Board | Info Tiles |
-| --- | --- | --- |
-| [![Mosaic Grid](assets/screenshots/mosaic-grid.png)](mosaic-grid/) | [![Flip Board](assets/screenshots/flip-board.png)](flip-board/) | [![Info Tiles](assets/screenshots/info-tiles.png)](info-tiles/) |
+| Mosaic Grid | Flip Board | Info Tiles | Codex Weekly |
+| --- | --- | --- | --- |
+| [![Mosaic Grid](assets/screenshots/mosaic-grid.png)](mosaic-grid/) | [![Flip Board](assets/screenshots/flip-board.png)](flip-board/) | [![Info Tiles](assets/screenshots/info-tiles.png)](info-tiles/) | [![Codex Weekly](assets/screenshots/codex-weekly.png)](codex-weekly/) |
 
 Каждая папка является отдельным Pebble-проектом со своим UUID и собирается в
-отдельный `.pbw`. Это важно: в Appstore они публикуются как три отдельные
+отдельный `.pbw`. Это важно: в Appstore они публикуются как четыре отдельные
 карточки.
 
 ## Быстрый старт
@@ -27,7 +36,7 @@ uv tool install pebble-tool
 pebble sdk install latest
 ```
 
-Соберите все три проекта:
+Соберите все четыре проекта:
 
 ```bash
 make build
@@ -39,6 +48,7 @@ make build
 mosaic-grid/build/*.pbw
 flip-board/build/*.pbw
 info-tiles/build/*.pbw
+codex-weekly/build/*.pbw
 ```
 
 ## Локальная разработка и тестирование
@@ -72,7 +82,7 @@ pebble install --emulator emery --logs
 ```
 
 Для запуска другого watchface перейдите из корня репозитория в
-`flip-board` или `info-tiles` и выполните те же две команды.
+`flip-board`, `info-tiles` или `codex-weekly` и выполните те же две команды.
 
 Полезные команды для проверки состояний:
 
@@ -111,7 +121,13 @@ pebble install --emulator emery --logs
 dist/mosaic-grid.pbw
 dist/flip-board.pbw
 dist/info-tiles.pbw
+dist/codex-weekly.pbw
+dist/voice-drop.pbw
 ```
+
+`dist/voice-drop.pbw` относится к старому прототипу с записью через телефон.
+Версия `0.2.0` требует SDK revision 110 из пропатченной PebbleOS; до такой сборки
+старый PBW не следует устанавливать.
 
 Установка на Pebble Time 2 через новый Pebble mobile app:
 
@@ -121,7 +137,7 @@ cd mosaic-grid
 pebble install --cloudpebble
 ```
 
-Для двух остальных циферблатов повторите команду из их каталогов.
+Для трёх остальных циферблатов повторите команду из их каталогов.
 
 Подробный процесс публикации: [MARKETPLACE_RU.md](MARKETPLACE_RU.md).
 Готовые тексты карточек: [STORE_LISTINGS.md](STORE_LISTINGS.md).
@@ -137,6 +153,9 @@ pebble install --cloudpebble
 - `info-tiles` использует Pebble Health для шагов и пульса.
 - `info-tiles` запрашивает GPS телефона и текущую погоду у Open‑Meteo каждые
   30 минут; API-ключ не требуется.
+- `codex-weekly` получает недельный лимит и 12-недельную heatmap через
+  локальный Codex bridge; инструкция по безопасному подключению находится в
+  [`codex-weekly/README.md`](codex-weekly/README.md).
 - При недоступных Health/GPS/сети интерфейс показывает `--`, не падает.
 
 ## Перед публикацией

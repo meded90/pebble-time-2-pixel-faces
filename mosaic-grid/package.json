@@ -1,7 +1,7 @@
 {
   "name": "mosaic-grid",
   "author": "Kirill Baldin",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "keywords": ["pebble-app", "watchface", "pixel", "emery"],
   "private": true,
   "dependencies": {},
@@ -16,7 +16,14 @@
     },
     "messageKeys": [],
     "resources": {
-      "media": []
+      "media": [
+        {
+          "type": "png",
+          "name": "IMAGE_MENU_ICON",
+          "file": "images/mosaic-grid-menu-icon.png",
+          "menuIcon": true
+        }
+      ]
     }
   }
 }

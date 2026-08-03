@@ -1,0 +1,36 @@
+{
+  "name": "zodiac-gemini",
+  "author": "Kirill Baldin",
+  "version": "1.0.0",
+  "keywords": [
+    "pebble-app",
+    "watchface",
+    "zodiac",
+    "gemini",
+    "emery"
+  ],
+  "private": true,
+  "dependencies": {},
+  "pebble": {
+    "displayName": "Зодиак: Близнецы",
+    "uuid": "c6a026fe-7138-4280-999f-debca9ce4137",
+    "sdkVersion": "3",
+    "enableMultiJS": true,
+    "targetPlatforms": [
+      "emery"
+    ],
+    "watchapp": {
+      "watchface": true
+    },
+    "messageKeys": [],
+    "resources": {
+      "media": [
+        {
+          "type": "bitmap",
+          "name": "IMAGE_BACKGROUND",
+          "file": "images/background.png"
+        }
+      ]
+    }
+  }
+}

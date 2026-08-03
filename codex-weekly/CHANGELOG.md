@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.4 — 2026-08-03
+
+- Reduced application icon padding for better readability in the watch menu.
+
 ## 1.0.3 — 2026-08-03
 
 - Made the sync status square a solid color with no white border.

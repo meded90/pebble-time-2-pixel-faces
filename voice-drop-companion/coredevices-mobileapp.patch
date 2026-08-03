@@ -1,0 +1,402 @@
+diff --git a/libpebble3/src/commonMain/kotlin/io/rebble/libpebblecommon/connection/TransportConnector.kt b/libpebble3/src/commonMain/kotlin/io/rebble/libpebblecommon/connection/TransportConnector.kt
+index 0af456fa3dd09553201c97d3dab12f443004056f..29d24ad2841d908be04802f74fb20f5830aa2cab 100644
+--- a/libpebble3/src/commonMain/kotlin/io/rebble/libpebblecommon/connection/TransportConnector.kt
++++ b/libpebble3/src/commonMain/kotlin/io/rebble/libpebblecommon/connection/TransportConnector.kt
+@@ -16,6 +16,7 @@ import io.rebble.libpebblecommon.connection.endpointmanager.DebugPebbleProtocolS
+ import io.rebble.libpebblecommon.connection.endpointmanager.FirmwareUpdater
+ import io.rebble.libpebblecommon.connection.endpointmanager.RealLanguagePackInstaller
+ import io.rebble.libpebblecommon.connection.endpointmanager.audio.VoiceSessionManager
++import io.rebble.libpebblecommon.connection.endpointmanager.audio.VoiceDropManager
+ import io.rebble.libpebblecommon.connection.endpointmanager.blobdb.BlobDB
+ import io.rebble.libpebblecommon.connection.endpointmanager.musiccontrol.MusicControlManager
+ import io.rebble.libpebblecommon.connection.endpointmanager.phonecontrol.PhoneControlManager
+@@ -155,6 +156,7 @@ class RealPebbleConnector(
+     private val devConnectionManager: DevConnectionManager,
+     private val screenshotService: ScreenshotService,
+     private val voiceSessionManager: VoiceSessionManager,
++    private val voiceDropManager: VoiceDropManager,
+     private val watchConfig: WatchConfigFlow,
+     private val appOrderManager: AppOrderManager,
+     private val languagePackInstaller: RealLanguagePackInstaller,
+@@ -274,6 +276,7 @@ class RealPebbleConnector(
+         phoneControlManager.init()
+         musicControlManager.init()
+         voiceSessionManager.init()
++        voiceDropManager.init()
+         dataLoggingService.realInit(watchInfo)
+         appOrderManager.init(forceResend = watchInfo.isUnfaithful || !previouslyConnected)
+ 
+diff --git a/libpebble3/src/commonMain/kotlin/io/rebble/libpebblecommon/connection/endpointmanager/audio/VoiceDropManager.kt b/libpebble3/src/commonMain/kotlin/io/rebble/libpebblecommon/connection/endpointmanager/audio/VoiceDropManager.kt
+new file mode 100644
+index 0000000000000000000000000000000000000000..ffa962a00ed247d885e444a11626e3fddfbede97
+--- /dev/null
++++ b/libpebble3/src/commonMain/kotlin/io/rebble/libpebblecommon/connection/endpointmanager/audio/VoiceDropManager.kt
+@@ -0,0 +1,284 @@
++package io.rebble.libpebblecommon.connection.endpointmanager.audio
++
++import co.touchlab.kermit.Logger
++import io.rebble.libpebblecommon.connection.PebbleProtocolHandler
++import io.rebble.libpebblecommon.di.ConnectionCoroutineScope
++import io.rebble.libpebblecommon.packets.VoiceDropPacket
++import kotlinx.coroutines.CancellationException
++import kotlinx.coroutines.delay
++import kotlinx.coroutines.flow.filterIsInstance
++import kotlinx.coroutines.flow.onStart
++import kotlinx.coroutines.launch
++
++private fun ByteArray.putU16(offset: Int, value: UShort) {
++    this[offset] = value.toByte()
++    this[offset + 1] = (value.toUInt() shr 8).toByte()
++}
++
++private fun ByteArray.putU32(offset: Int, value: UInt) {
++    repeat(4) { this[offset + it] = (value shr (it * 8)).toByte() }
++}
++
++data class VoiceDropRecording(
++    val id: UInt,
++    val startedAt: UInt,
++    val durationMs: UInt,
++    val frameCount: UInt,
++    val payloadCrc32: UInt,
++    val sampleRate: UShort,
++    val bitRate: UShort,
++    val frameSize: UShort,
++    val channels: UByte,
++    val bitstreamVersion: UByte,
++    val payload: ByteArray,
++) {
++    fun toContainer(): ByteArray {
++        val output = ByteArray(CONTAINER_HEADER_SIZE + payload.size)
++        MAGIC.copyInto(output)
++        output.putU32(8, id)
++        output.putU32(12, startedAt)
++        output.putU32(16, durationMs)
++        output.putU32(20, frameCount)
++        output.putU32(24, payload.size.toUInt())
++        output.putU32(28, payloadCrc32)
++        output.putU16(32, sampleRate)
++        output.putU16(34, bitRate)
++        output.putU16(36, frameSize)
++        output[38] = channels.toByte()
++        output[39] = bitstreamVersion.toByte()
++        payload.copyInto(output, CONTAINER_HEADER_SIZE)
++        return output
++    }
++
++    companion object {
++        private val MAGIC = "VDROP001".encodeToByteArray()
++        private const val CONTAINER_HEADER_SIZE = 40
++    }
++}
++
++fun interface VoiceDropUploadSink {
++    /** Return true only after durable storage and final downstream delivery. */
++    suspend fun upload(recording: VoiceDropRecording): Boolean
++}
++
++object VoiceDropUploadSinkRegistry {
++    var sink: VoiceDropUploadSink? = null
++}
++
++class VoiceDropManager(
++    private val protocolHandler: PebbleProtocolHandler,
++    private val watchScope: ConnectionCoroutineScope,
++) {
++    private data class Transfer(
++        val recording: VoiceDropRecording,
++        val chunkCount: UShort,
++        var chunkIndex: Int = 0,
++        var chunkOffset: Int = 0,
++        var payloadOffset: Int = 0,
++    )
++
++    private var active = false
++    private var current: Transfer? = null
++
++    fun init() {
++        watchScope.launch {
++            protocolHandler.inboundMessages
++                .filterIsInstance<VoiceDropPacket>()
++                .onStart { requestList(0u) }
++                .collect { packet -> handle(packet.bytes.get().asByteArray()) }
++        }
++    }
++
++    private suspend fun handle(bytes: ByteArray) {
++        if (bytes.isEmpty()) return
++        when (bytes[0].toUByte()) {
++            QUEUE_STATUS -> if (bytes.size >= 7 && bytes.u16(1).toInt() > 0 && current == null) {
++                active = false
++                requestList(0u)
++            }
++            RECORDING_META -> handleMeta(bytes)
++            CHUNK_DATA -> handleChunkData(bytes)
++            CHUNK_DONE -> handleChunkDone(bytes)
++            RECORDING_DONE -> if (bytes.size >= 5 && bytes.u32(1) == 0u) {
++                active = false
++                current = null
++            }
++            ERROR -> fail("Watch rejected Voice Drop transfer")
++        }
++    }
++
++    private suspend fun handleMeta(bytes: ByteArray) {
++        if (bytes.size != META_SIZE || VoiceDropUploadSinkRegistry.sink == null) {
++            active = false
++            return
++        }
++        val payloadSize = bytes.u32(17).toLong()
++        if (payloadSize <= 0 || payloadSize > MAX_RECORDING_BYTES) {
++            fail("Invalid Voice Drop payload size: $payloadSize")
++            return
++        }
++        val recording = VoiceDropRecording(
++            id = bytes.u32(1),
++            startedAt = bytes.u32(5),
++            durationMs = bytes.u32(9),
++            frameCount = bytes.u32(13),
++            payloadCrc32 = bytes.u32(21),
++            sampleRate = bytes.u16(27),
++            bitRate = bytes.u16(29),
++            frameSize = bytes.u16(31),
++            channels = bytes[33].toUByte(),
++            bitstreamVersion = bytes[34].toUByte(),
++            payload = ByteArray(payloadSize.toInt()),
++        )
++        current = Transfer(recording = recording, chunkCount = bytes.u16(25))
++        active = true
++        requestChunk(current!!, 0)
++    }
++
++    private suspend fun handleChunkData(bytes: ByteArray) {
++        val transfer = current ?: return
++        if (bytes.size < CHUNK_DATA_HEADER_SIZE) return
++        val id = bytes.u32(1)
++        val chunk = bytes.u16(5).toInt()
++        val offset = bytes.u32(7).toLong()
++        val dataSize = bytes[15].toUByte().toInt()
++        if (id != transfer.recording.id || chunk != transfer.chunkIndex ||
++            offset != transfer.chunkOffset.toLong() ||
++            bytes.size != CHUNK_DATA_HEADER_SIZE + dataSize ||
++            transfer.payloadOffset + transfer.chunkOffset + dataSize > transfer.recording.payload.size
++        ) {
++            fail("Invalid chunk data")
++            return
++        }
++        bytes.copyInto(
++            transfer.recording.payload,
++            destinationOffset = transfer.payloadOffset + transfer.chunkOffset,
++            startIndex = CHUNK_DATA_HEADER_SIZE,
++        )
++        transfer.chunkOffset += dataSize
++        send(fetchRequest(DATA_ACK, transfer.recording.id, chunk, transfer.chunkOffset))
++    }
++
++    private suspend fun handleChunkDone(bytes: ByteArray) {
++        val transfer = current ?: return
++        if (bytes.size != CHUNK_DONE_SIZE || bytes.u32(1) != transfer.recording.id) return
++        val chunk = bytes.u16(5).toInt()
++        val chunkSize = bytes.u32(7).toLong()
++        if (chunk != transfer.chunkIndex || chunkSize != transfer.chunkOffset.toLong()) {
++            fail("Chunk length mismatch")
++            return
++        }
++        transfer.payloadOffset += transfer.chunkOffset
++        transfer.chunkOffset = 0
++        transfer.chunkIndex++
++        if (transfer.chunkIndex < transfer.chunkCount.toInt()) {
++            requestChunk(transfer, transfer.chunkIndex)
++            return
++        }
++        val recording = transfer.recording
++        if (transfer.payloadOffset != recording.payload.size ||
++            crc32(recording.payload) != recording.payloadCrc32
++        ) {
++            fail("Recording checksum mismatch")
++            return
++        }
++        deliver(recording)
++    }
++
++    private suspend fun deliver(recording: VoiceDropRecording) {
++        try {
++            val delivered = VoiceDropUploadSinkRegistry.sink?.upload(recording) == true
++            if (!delivered) {
++                fail("Voice Drop sink did not confirm delivery")
++                return
++            }
++            send(byteArrayOf(RECORDING_ACK.toByte()) + recording.id.leBytes())
++            current = null
++            active = false
++            delay(300)
++            requestList(recording.id)
++        } catch (e: CancellationException) {
++            throw e
++        } catch (e: Exception) {
++            fail("Voice Drop delivery failed", e)
++        }
++    }
++
++    private suspend fun requestList(after: UInt) {
++        if (VoiceDropUploadSinkRegistry.sink == null || active) return
++        active = true
++        send(byteArrayOf(LIST.toByte()) + after.leBytes())
++    }
++
++    private suspend fun requestChunk(transfer: Transfer, chunk: Int) {
++        send(fetchRequest(FETCH_CHUNK, transfer.recording.id, chunk, 0))
++    }
++
++    private suspend fun send(payload: ByteArray) {
++        protocolHandler.send(VoiceDropPacket(payload.asUByteArray()))
++    }
++
++    private fun fail(message: String, error: Throwable? = null) {
++        if (error == null) logger.w { message } else logger.w(error) { message }
++        current = null
++        active = false
++    }
++
++    private fun fetchRequest(command: UByte, id: UInt, chunk: Int, offset: Int) =
++        ByteArray(11).also {
++            it[0] = command.toByte()
++            it.putU32(1, id)
++            it.putU16(5, chunk.toUShort())
++            it.putU32(7, offset.toUInt())
++        }
++
++    private fun ByteArray.u16(offset: Int): UShort =
++        ((this[offset].toUByte().toUInt()) or
++            (this[offset + 1].toUByte().toUInt() shl 8)).toUShort()
++
++    private fun ByteArray.u32(offset: Int): UInt =
++        this[offset].toUByte().toUInt() or
++            (this[offset + 1].toUByte().toUInt() shl 8) or
++            (this[offset + 2].toUByte().toUInt() shl 16) or
++            (this[offset + 3].toUByte().toUInt() shl 24)
++
++    private fun ByteArray.putU16(offset: Int, value: UShort) {
++        this[offset] = value.toByte()
++        this[offset + 1] = (value.toUInt() shr 8).toByte()
++    }
++
++    private fun ByteArray.putU32(offset: Int, value: UInt) {
++        repeat(4) { this[offset + it] = (value shr (it * 8)).toByte() }
++    }
++
++    private fun UInt.leBytes() = ByteArray(4) { (this shr (it * 8)).toByte() }
++
++    private fun crc32(bytes: ByteArray): UInt {
++        var crc = UInt.MAX_VALUE
++        bytes.forEach { byte ->
++            crc = crc xor byte.toUByte().toUInt()
++            repeat(8) {
++                crc = if ((crc and 1u) != 0u) (crc shr 1) xor 0xedb88320u else crc shr 1
++            }
++        }
++        return crc xor UInt.MAX_VALUE
++    }
++
++    companion object {
++        private val logger = Logger.withTag("VoiceDrop")
++        private const val MAX_RECORDING_BYTES = 8L * 1024L * 1024L
++        private const val META_SIZE = 35
++        private const val CHUNK_DATA_HEADER_SIZE = 16
++        private const val CHUNK_DONE_SIZE = 11
++        private val LIST = 0x01u.toUByte()
++        private val FETCH_CHUNK = 0x02u.toUByte()
++        private val DATA_ACK = 0x03u.toUByte()
++        private val RECORDING_ACK = 0x04u.toUByte()
++        private val QUEUE_STATUS = 0x81u.toUByte()
++        private val RECORDING_META = 0x82u.toUByte()
++        private val CHUNK_DATA = 0x83u.toUByte()
++        private val CHUNK_DONE = 0x84u.toUByte()
++        private val RECORDING_DONE = 0x85u.toUByte()
++        private val ERROR = 0xffu.toUByte()
++    }
++}
+diff --git a/libpebble3/src/commonMain/kotlin/io/rebble/libpebblecommon/di/LibPebbleModule.kt b/libpebble3/src/commonMain/kotlin/io/rebble/libpebblecommon/di/LibPebbleModule.kt
+index a575165c873ba1c5bfc04cdb2188dd9cebfdab82..8758ef73713c6e70e30e78297c3563968de7f271 100644
+--- a/libpebble3/src/commonMain/kotlin/io/rebble/libpebblecommon/di/LibPebbleModule.kt
++++ b/libpebble3/src/commonMain/kotlin/io/rebble/libpebblecommon/di/LibPebbleModule.kt
+@@ -83,6 +83,7 @@ import io.rebble.libpebblecommon.connection.endpointmanager.InterruptedFirmwareU
+ import io.rebble.libpebblecommon.connection.endpointmanager.RealFirmwareUpdater
+ import io.rebble.libpebblecommon.connection.endpointmanager.RealLanguagePackInstaller
+ import io.rebble.libpebblecommon.connection.endpointmanager.audio.VoiceSessionManager
++import io.rebble.libpebblecommon.connection.endpointmanager.audio.VoiceDropManager
+ import io.rebble.libpebblecommon.connection.endpointmanager.blobdb.BlobDB
+ import io.rebble.libpebblecommon.connection.endpointmanager.blobdb.BlobDbDaos
+ import io.rebble.libpebblecommon.connection.endpointmanager.blobdb.RealTimeProvider
+@@ -563,6 +564,7 @@ fun initKoin(
+                         )
+                     }
+                     scopedOf(::VoiceSessionManager)
++                    scopedOf(::VoiceDropManager)
+ 
+ 
+                     // TODO we ccoouulllddd scope this further to inject more things that we still
+diff --git a/libpebble3/src/commonMain/kotlin/io/rebble/libpebblecommon/packets/VoiceDrop.kt b/libpebble3/src/commonMain/kotlin/io/rebble/libpebblecommon/packets/VoiceDrop.kt
+new file mode 100644
+index 0000000000000000000000000000000000000000..c55ce992736e4493781891c6eb0f52ab55d44dab
+--- /dev/null
++++ b/libpebble3/src/commonMain/kotlin/io/rebble/libpebblecommon/packets/VoiceDrop.kt
+@@ -0,0 +1,19 @@
++package io.rebble.libpebblecommon.packets
++
++import io.rebble.libpebblecommon.protocolhelpers.PacketRegistry
++import io.rebble.libpebblecommon.protocolhelpers.PebblePacket
++import io.rebble.libpebblecommon.protocolhelpers.ProtocolEndpoint
++import io.rebble.libpebblecommon.structmapper.SBytes
++
++class VoiceDropPacket(bytes: UByteArray = ubyteArrayOf()) :
++    PebblePacket(ProtocolEndpoint.VOICE_DROP) {
++    val bytes = SBytes(
++        mapper = m,
++        default = bytes,
++        allRemainingBytes = bytes.isEmpty(),
++    )
++}
++
++fun voiceDropPacketsRegister() {
++    PacketRegistry.register(ProtocolEndpoint.VOICE_DROP) { VoiceDropPacket() }
++}
+diff --git a/libpebble3/src/commonMain/kotlin/io/rebble/libpebblecommon/protocolhelpers/PacketRegistry.kt b/libpebble3/src/commonMain/kotlin/io/rebble/libpebblecommon/protocolhelpers/PacketRegistry.kt
+index bd57e6c3252a1bcd8a801591d3a0b59436735294..0398ebbf6d39eee9ac88e6c5929176afa6644b4e 100644
+--- a/libpebble3/src/commonMain/kotlin/io/rebble/libpebblecommon/protocolhelpers/PacketRegistry.kt
++++ b/libpebble3/src/commonMain/kotlin/io/rebble/libpebblecommon/protocolhelpers/PacketRegistry.kt
+@@ -21,6 +21,7 @@ import io.rebble.libpebblecommon.packets.screenshotPacketsRegister
+ import io.rebble.libpebblecommon.packets.systemPacketsRegister
+ import io.rebble.libpebblecommon.packets.timePacketsRegister
+ import io.rebble.libpebblecommon.packets.voicePacketsRegister
++import io.rebble.libpebblecommon.packets.voiceDropPacketsRegister
+ 
+ /**
+  * Singleton to track endpoint / type discriminators for deserialization
+@@ -50,6 +51,7 @@ object PacketRegistry {
+         logDumpPacketsRegister()
+         voicePacketsRegister()
+         audioStreamPacketsRegister()
++        voiceDropPacketsRegister()
+         dataLoggingPacketsRegister()
+         getBytesIncomingPacketsRegister()
+         healthSyncPacketsRegister()
+diff --git a/libpebble3/src/commonMain/kotlin/io/rebble/libpebblecommon/protocolhelpers/ProtocolEndpoint.kt b/libpebble3/src/commonMain/kotlin/io/rebble/libpebblecommon/protocolhelpers/ProtocolEndpoint.kt
+index c80a0e23efffebdeefd62b5de4172bae082136f1..e8f507091c6a52ec1e91fab6664457204bd3c08d 100644
+--- a/libpebble3/src/commonMain/kotlin/io/rebble/libpebblecommon/protocolhelpers/ProtocolEndpoint.kt
++++ b/libpebble3/src/commonMain/kotlin/io/rebble/libpebblecommon/protocolhelpers/ProtocolEndpoint.kt
+@@ -29,6 +29,7 @@ enum class ProtocolEndpoint(val value: UShort) {
+     FILE_INSTALL_MANAGER(8181u),
+     GET_BYTES(9000u),
+     AUDIO_STREAMING(10000u),
++    VOICE_DROP(10001u),
+     APP_REORDER(43981u /* 0xabcd */),
+     BLOBDB_V1(45531u /* 0xb1db */),
+     BLOBDB_V2(45787u /* 0xb2db */),
+@@ -46,4 +47,4 @@ enum class ProtocolEndpoint(val value: UShort) {
+                 }
+             }
+     }
+-}
+\ No newline at end of file
++}
