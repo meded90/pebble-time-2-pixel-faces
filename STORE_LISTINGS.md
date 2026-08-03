@@ -57,3 +57,34 @@ read locally from Pebble Health and are not uploaded by the watchface.
 
 **Permissions:** location and health.
 
+## Codex Weekly
+
+**Short description**
+
+Large pixel time, weekly Codex quota and a GitHub-style personal usage heatmap.
+
+**Full description**
+
+Codex Weekly places an oversized digital clock above your remaining weekly
+Codex quota and a 12-week personal-usage heatmap. The quota is shown as a
+percentage, a segmented progress bar and the time remaining until reset.
+
+Personal data is synced through a private local bridge running on your Mac.
+The bridge uses your existing ChatGPT sign-in in Codex; OpenAI credentials are
+never stored on the watch. The phone keeps only the bridge URL and a locally
+generated bridge token.
+
+Requires Pebble Time 2, a connected Pebble mobile app, a Mac running the
+included bridge, and network access between the phone and Mac.
+
+**Privacy**
+
+The bridge requests only Codex rate limits and daily personal-usage counters.
+It returns compact watchface data over your own network. The watchface does not
+send this data to the developer or any marketplace service. Users should keep
+the bridge private or place it behind HTTPS and authentication.
+
+**Permissions:** internet access through PebbleKit JS.
+
+**Website and setup:**
+[github.com/meded90/pebble-time-2-pixel-faces](https://github.com/meded90/pebble-time-2-pixel-faces/tree/main/codex-weekly)

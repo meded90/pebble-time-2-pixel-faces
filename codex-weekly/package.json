@@ -1,0 +1,50 @@
+{
+  "name": "codex-weekly",
+  "author": "Kirill Baldin",
+  "version": "1.0.3",
+  "keywords": [
+    "pebble-app",
+    "watchface",
+    "codex",
+    "usage",
+    "heatmap",
+    "pixel",
+    "emery"
+  ],
+  "private": true,
+  "dependencies": {
+    "@rebble/clay": "^1.0.10"
+  },
+  "pebble": {
+    "displayName": "Codex Weekly",
+    "uuid": "9a2d777f-5d58-47fc-aade-4da5090cd0be",
+    "sdkVersion": "3",
+    "enableMultiJS": true,
+    "targetPlatforms": [
+      "emery"
+    ],
+    "watchapp": {
+      "watchface": true
+    },
+    "capabilities": [
+      "configurable"
+    ],
+    "messageKeys": [
+      "WEEK_LEFT",
+      "RESET_TEXT",
+      "ACTIVITY_MAP",
+      "SYNC_STATE",
+      "REQUEST_SYNC"
+    ],
+    "resources": {
+      "media": [
+        {
+          "type": "png",
+          "name": "IMAGE_MENU_ICON",
+          "file": "images/codex-weekly-menu-icon.png",
+          "menuIcon": true
+        }
+      ]
+    }
+  }
+}
