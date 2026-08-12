@@ -1,7 +1,7 @@
 {
   "name": "zodiac-gemini",
   "author": "Kirill Baldin",
-  "version": "1.0.0",
+  "version": "1.3.1",
   "keywords": [
     "pebble-app",
     "watchface",
@@ -25,6 +25,12 @@
     "messageKeys": [],
     "resources": {
       "media": [
+        {
+          "type": "png",
+          "name": "IMAGE_MENU_ICON",
+          "file": "images/zodiac-gemini-menu-icon.png",
+          "menuIcon": true
+        },
         {
           "type": "bitmap",
           "name": "IMAGE_BACKGROUND",
