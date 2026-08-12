@@ -5,35 +5,35 @@ module.exports = [
   },
   {
     type: 'text',
-    defaultValue: 'Sign in on your Mac with <code>codex login</code>, then connect this watchface to the local Codex bridge. <a href="https://learn.chatgpt.com/docs/auth.md">Authentication guide</a>. Your ChatGPT credentials never go to the watch.'
+    defaultValue: 'Deploy your own Cloud Run bridge, then paste its status URL and client token below. See the RU/EN deployment guides in the project repository.'
   },
   {
     type: 'section',
     items: [
       {
         type: 'heading',
-        defaultValue: 'Codex bridge'
+        defaultValue: 'Codex Weekly connection'
       },
       {
         type: 'input',
         messageKey: 'BRIDGE_URL',
         defaultValue: '',
         label: 'Status URL',
-        description: 'Example: http://192.168.1.20:8765/status',
+        description: 'Your own Cloud Run service URL ending in /status.',
         attributes: {
           type: 'url',
-          placeholder: 'http://192.168.1.20:8765/status'
+          placeholder: 'https://YOUR-SERVICE-URL.run.app/status'
         }
       },
       {
         type: 'input',
         messageKey: 'BRIDGE_TOKEN',
         defaultValue: '',
-        label: 'Bridge token',
-        description: 'Generate it locally with: openssl rand -hex 24. Use the CODEX_PEBBLE_TOKEN value, not an OpenAI API key.',
+        label: 'Cloud Run client token',
+        description: 'Retrieve it from your own codex-weekly-client-token secret. This is not an OpenAI API key.',
         attributes: {
           type: 'password',
-          placeholder: 'Paste the bridge token'
+          placeholder: 'Paste your Secret Manager token'
         }
       },
       {
@@ -60,7 +60,7 @@ module.exports = [
   },
   {
     type: 'text',
-    defaultValue: 'The bridge uses the existing ChatGPT login in Codex on your Mac. OpenAI Platform API keys cannot read personal Codex limits. Do not expose the bridge to the public internet without HTTPS and authentication.'
+    defaultValue: 'The token stays in PebbleKit settings on your phone and is sent over HTTPS. Never publish it in chats, URLs, or Git. Sync failures show neutral missing-data indicators.'
   },
   {
     type: 'submit',

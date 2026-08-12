@@ -1,7 +1,7 @@
 {
   "name": "codex-weekly",
-  "author": "Kirill Baldin",
-  "version": "1.0.4",
+  "author": "Codex Weekly contributors",
+  "version": "1.0.5",
   "keywords": [
     "pebble-app",
     "watchface",

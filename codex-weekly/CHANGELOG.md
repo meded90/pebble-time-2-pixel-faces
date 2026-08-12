@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.5 — 2026-08-12
+
+- Added reusable Cloud Run deployment scripts and step-by-step guides in Russian and English.
+- Removed the preconfigured Google Cloud project and service URL so every user connects their own deployment.
+- Documented the experimental authentication boundary, secure token handling, and neutral no-data behavior.
+
 ## 1.0.4 — 2026-08-03
 
 - Reduced application icon padding for better readability in the watch menu.
