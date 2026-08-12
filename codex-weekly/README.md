@@ -1,6 +1,10 @@
 # Codex Weekly
 
+[Русский](README.md) · [English](README.en.md) · [Все циферблаты](../README.md#нативные-превью-200228)
+
 ![Codex Weekly icon](../assets/icons/codex-weekly-icon-144.png)
+
+[![Codex Weekly](../assets/screenshots/codex-weekly.png)](../assets/screenshots/codex-weekly.png)
 
 Нативный watchface для Pebble Time 2 (`emery`, 200×228):
 
@@ -126,3 +130,9 @@ npm install
 pebble build
 pebble install --emulator emery
 ```
+
+Готовый пакет: [`../dist/codex-weekly.pbw`](../dist/codex-weekly.pbw).
+
+## Все циферблаты
+
+[Mosaic Grid](../mosaic-grid/) · [Flip Board](../flip-board/) · [Info Tiles](../info-tiles/) · [Codex Weekly](../codex-weekly/) · [Starry Digits](../starry-digits/) · [meded90](../meded90/) · [Zodiac: Aquarius](../zodiac-aquarius/) · [Zodiac: Gemini](../zodiac-gemini/)

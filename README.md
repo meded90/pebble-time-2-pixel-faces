@@ -1,5 +1,7 @@
 # Pebble Time 2 Pixel Faces
 
+[Русский](README.md) · [English](README.en.md)
+
 Также в репозитории есть `voice-drop` — отдельное автономное watchapp-приложение,
 которое пишет звук микрофоном Pebble Time 2, а не телефоном. Для него нужны патч
 PebbleOS, общий iOS/Android-мост в приложении Core Devices и небольшой Telegram
@@ -7,36 +9,34 @@ PebbleOS, общий iOS/Android-мост в приложении Core Devices �
 [`voice-drop-firmware/README.md`](voice-drop-firmware/README.md) и
 [`voice-drop-companion/README.md`](voice-drop-companion/README.md).
 
-Основная подборка включает шесть самостоятельных watchface-приложений для
+Основная подборка включает восемь самостоятельных watchface-приложений для
 Pebble Time 2 (`emery`,
 200×228, 64 цвета), созданные по выделенным референсам:
 
-1. `mosaic-grid` — крупные часы и строгая цветовая сетка.
-2. `flip-board` — тёмное механическое табло с четырьмя flip-панелями.
-3. `info-tiles` — время, дата, заряд, погода, пульс и шаги.
-4. `codex-weekly` — крупные часы, недельный лимит Codex и heatmap личного
+1. [Mosaic Grid](mosaic-grid/) — крупные часы и строгая цветовая сетка.
+2. [Flip Board](flip-board/) — тёмное механическое табло с четырьмя flip-панелями.
+3. [Info Tiles](info-tiles/) — время, дата, заряд, погода, пульс и шаги.
+4. [Codex Weekly](codex-weekly/) — крупные часы, недельный лимит Codex и heatmap личного
    использования.
-5. `starry-digits` — рукописные бело-голубые цифры на живописном звёздном
+5. [Starry Digits](starry-digits/) — рукописные бело-голубые цифры на живописном звёздном
    фоне с вихревыми масляными мазками.
-6. `meded90` — пиксельный портрет в красном пиджаке и вертикальные часы,
+6. [meded90](meded90/) — пиксельный портрет в красном пиджаке и вертикальные часы,
    размещённые в свободной области фона.
+7. [Zodiac: Aquarius](zodiac-aquarius/) — иллюстрация Водолея и вертикальные часы.
+8. [Zodiac: Gemini](zodiac-gemini/) — иллюстрация Близнецов и крупные часы.
 
 ## Нативные превью 200×228
 
-| Mosaic Grid | Flip Board | Info Tiles | Codex Weekly |
+| [Mosaic Grid](mosaic-grid/) | [Flip Board](flip-board/) | [Info Tiles](info-tiles/) | [Codex Weekly](codex-weekly/) |
 | --- | --- | --- | --- |
 | [![Mosaic Grid](assets/screenshots/mosaic-grid.png)](mosaic-grid/) | [![Flip Board](assets/screenshots/flip-board.png)](flip-board/) | [![Info Tiles](assets/screenshots/info-tiles.png)](info-tiles/) | [![Codex Weekly](assets/screenshots/codex-weekly.png)](codex-weekly/) |
 
-| Starry Digits |
-| --- |
-| [![Starry Digits](assets/screenshots/starry-digits.png)](starry-digits/) |
-
-| meded90 |
-| --- |
-| [![meded90](assets/screenshots/meded90.png)](meded90/) |
+| [Starry Digits](starry-digits/) | [meded90](meded90/) | [Zodiac: Aquarius](zodiac-aquarius/) | [Zodiac: Gemini](zodiac-gemini/) |
+| --- | --- | --- | --- |
+| [![Starry Digits](assets/screenshots/starry-digits.png)](starry-digits/) | [![meded90](assets/screenshots/meded90.png)](meded90/) | [![Zodiac: Aquarius](assets/screenshots/zodiac-aquarius.png)](zodiac-aquarius/) | [![Zodiac: Gemini](assets/screenshots/zodiac-gemini.png)](zodiac-gemini/) |
 
 Каждая папка является отдельным Pebble-проектом со своим UUID и собирается в
-отдельный `.pbw`. Это важно: в Appstore они публикуются как шесть отдельных
+отдельный `.pbw`. Это важно: в Appstore они публикуются как восемь отдельных
 карточки.
 
 ## Быстрый старт
@@ -49,11 +49,14 @@ uv tool install pebble-tool
 pebble sdk install latest
 ```
 
-Соберите все шесть проектов:
+Соберите все восемь проектов:
 
 ```bash
 make build
 ```
+
+Отдельные watchapp-приложения собираются командой `make apps`. Для
+`voice-drop` нужен специальный пропатченный SDK, описанный в его README.
 
 Готовые пакеты появятся внутри:
 
@@ -64,6 +67,8 @@ info-tiles/build/*.pbw
 codex-weekly/build/*.pbw
 starry-digits/build/*.pbw
 meded90/build/*.pbw
+zodiac-aquarius/build/*.pbw
+zodiac-gemini/build/*.pbw
 ```
 
 ## Локальная разработка и тестирование
@@ -97,7 +102,7 @@ pebble install --emulator emery --logs
 ```
 
 Для запуска другого watchface перейдите из корня репозитория в
-`flip-board`, `info-tiles` или `codex-weekly` и выполните те же две команды.
+любую другую папку циферблата и выполните те же две команды.
 
 Полезные команды для проверки состояний:
 
@@ -139,6 +144,8 @@ dist/info-tiles.pbw
 dist/codex-weekly.pbw
 dist/starry-digits.pbw
 dist/meded90.pbw
+dist/zodiac-aquarius.pbw
+dist/zodiac-gemini.pbw
 dist/voice-drop.pbw
 ```
 
@@ -177,6 +184,6 @@ pebble install --cloudpebble
 
 ## Перед публикацией
 
-В каждом `package.json` замените `author`, если имя разработчика должно
-отличаться от `Kirill Baldin`. UUID уже уникальны — после публикации их нельзя
-менять, иначе Appstore воспримет сборку как новое приложение.
+В каждом `package.json` проверьте поле `author`. UUID уже уникальны — после
+публикации их нельзя менять, иначе Appstore воспримет сборку как новое
+приложение.
