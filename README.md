@@ -7,7 +7,8 @@ PebbleOS, общий iOS/Android-мост в приложении Core Devices �
 [`voice-drop-firmware/README.md`](voice-drop-firmware/README.md) и
 [`voice-drop-companion/README.md`](voice-drop-companion/README.md).
 
-Четыре самостоятельных watchface-приложения для Pebble Time 2 (`emery`,
+Основная подборка включает шесть самостоятельных watchface-приложений для
+Pebble Time 2 (`emery`,
 200×228, 64 цвета), созданные по выделенным референсам:
 
 1. `mosaic-grid` — крупные часы и строгая цветовая сетка.
@@ -15,6 +16,10 @@ PebbleOS, общий iOS/Android-мост в приложении Core Devices �
 3. `info-tiles` — время, дата, заряд, погода, пульс и шаги.
 4. `codex-weekly` — крупные часы, недельный лимит Codex и heatmap личного
    использования.
+5. `starry-digits` — рукописные бело-голубые цифры на живописном звёздном
+   фоне с вихревыми масляными мазками.
+6. `meded90` — пиксельный портрет в красном пиджаке и вертикальные часы,
+   размещённые в свободной области фона.
 
 ## Нативные превью 200×228
 
@@ -22,8 +27,16 @@ PebbleOS, общий iOS/Android-мост в приложении Core Devices �
 | --- | --- | --- | --- |
 | [![Mosaic Grid](assets/screenshots/mosaic-grid.png)](mosaic-grid/) | [![Flip Board](assets/screenshots/flip-board.png)](flip-board/) | [![Info Tiles](assets/screenshots/info-tiles.png)](info-tiles/) | [![Codex Weekly](assets/screenshots/codex-weekly.png)](codex-weekly/) |
 
+| Starry Digits |
+| --- |
+| [![Starry Digits](assets/screenshots/starry-digits.png)](starry-digits/) |
+
+| meded90 |
+| --- |
+| [![meded90](assets/screenshots/meded90.png)](meded90/) |
+
 Каждая папка является отдельным Pebble-проектом со своим UUID и собирается в
-отдельный `.pbw`. Это важно: в Appstore они публикуются как четыре отдельные
+отдельный `.pbw`. Это важно: в Appstore они публикуются как шесть отдельных
 карточки.
 
 ## Быстрый старт
@@ -36,7 +49,7 @@ uv tool install pebble-tool
 pebble sdk install latest
 ```
 
-Соберите все четыре проекта:
+Соберите все шесть проектов:
 
 ```bash
 make build
@@ -49,6 +62,8 @@ mosaic-grid/build/*.pbw
 flip-board/build/*.pbw
 info-tiles/build/*.pbw
 codex-weekly/build/*.pbw
+starry-digits/build/*.pbw
+meded90/build/*.pbw
 ```
 
 ## Локальная разработка и тестирование
@@ -122,6 +137,8 @@ dist/mosaic-grid.pbw
 dist/flip-board.pbw
 dist/info-tiles.pbw
 dist/codex-weekly.pbw
+dist/starry-digits.pbw
+dist/meded90.pbw
 dist/voice-drop.pbw
 ```
 
@@ -137,7 +154,7 @@ cd mosaic-grid
 pebble install --cloudpebble
 ```
 
-Для трёх остальных циферблатов повторите команду из их каталогов.
+Для остальных циферблатов повторите команду из их каталогов.
 
 Подробный процесс публикации: [MARKETPLACE_RU.md](MARKETPLACE_RU.md).
 Готовые тексты карточек: [STORE_LISTINGS.md](STORE_LISTINGS.md).

@@ -1,6 +1,7 @@
 #!/usr/bin/env swift
 
 import CoreGraphics
+import CoreText
 import Foundation
 import ImageIO
 import UniformTypeIdentifiers
@@ -37,8 +38,8 @@ let digits: [Character: [String]] = [
 ]
 
 let codexGlyphs: [Character: [String]] = [
-  "C": ["11111", "10000", "10000", "10000", "10000", "10000", "11111"],
-  "O": ["11111", "10001", "10001", "10001", "10001", "10001", "11111"],
+  "C": ["01110", "10001", "10000", "10000", "10000", "10001", "01110"],
+  "O": ["01110", "10001", "10001", "10001", "10001", "10001", "01110"],
   "D": ["11110", "10001", "10001", "10001", "10001", "10001", "11110"],
   "E": ["11111", "10000", "10000", "11110", "10000", "10000", "11111"],
   "X": ["10001", "10001", "01010", "00100", "01010", "10001", "10001"],
@@ -120,6 +121,17 @@ func drawFlipBoard(size: Int) -> PixelCanvas {
         scaleY: digitScale
       )
     }
+
+    let cornerPixels = [
+      (0, 0), (1, 0), (0, 1),
+      (tileSize - 1, 0), (tileSize - 2, 0), (tileSize - 1, 1),
+      (0, tileSize - 1), (1, tileSize - 1), (0, tileSize - 2),
+      (tileSize - 1, tileSize - 1), (tileSize - 2, tileSize - 1),
+      (tileSize - 1, tileSize - 2),
+    ]
+    for (cornerX, cornerY) in cornerPixels {
+      canvas.set(x + cornerX, y + cornerY, black)
+    }
   }
 
   return canvas
@@ -138,21 +150,96 @@ func drawMosaicGrid(size: Int) -> PixelCanvas {
   canvas.rect(x: rightX, y: size == 25 ? 9 : 11, width: rightWidth, height: size == 25 ? 8 : 11, color: white)
   canvas.rect(x: rightX, y: size == 25 ? 19 : 24, width: rightWidth, height: size - (size == 25 ? 20 : 25), color: paleYellow)
 
-  let scale = size == 25 ? 1 : 2
-  let digitWidth = 3 * scale
-  let pairWidth = digitWidth * 2 + scale
-  let digitX = 1 + (leftWidth - 1 - pairWidth) / 2
-  let topY = size == 25 ? 3 : 3
-  let bottomY = size == 25 ? 10 : 14
-
-  for (index, value) in [Character("2"), Character("2")].enumerated() {
-    canvas.glyph(digits[value]!, x: digitX + index * (digitWidth + scale), y: topY, color: black, scaleX: scale, scaleY: scale)
-  }
-  for (index, value) in [Character("0"), Character("0")].enumerated() {
-    canvas.glyph(digits[value]!, x: digitX + index * (digitWidth + scale), y: bottomY, color: black, scaleX: scale, scaleY: scale)
-  }
-
   return canvas
+}
+
+func robotoBoldFont(size: CGFloat) throws -> CTFont {
+  let fontURL = FileManager.default.homeDirectoryForCurrentUser
+    .appendingPathComponent("Library/Application Support/Pebble SDK/SDKs/4.17")
+    .appendingPathComponent("toolchain/moddable/contributed/moddable_six/plug-schedule/fonts/Roboto-Bold.ttf")
+
+  guard
+    let provider = CGDataProvider(url: fontURL as CFURL),
+    let graphicsFont = CGFont(provider)
+  else {
+    throw NSError(
+      domain: "IconGenerator",
+      code: 3,
+      userInfo: [NSLocalizedDescriptionKey: "Roboto-Bold.ttf was not found in the Pebble SDK"]
+    )
+  }
+
+  return CTFontCreateWithGraphicsFont(graphicsFont, size, nil, nil)
+}
+
+func overlayRobotoMosaicDigits(on canvas: inout PixelCanvas) throws {
+  let size = canvas.width
+  let scale = CGFloat(size) / 32
+  let panelX: CGFloat = size == 25 ? 1 : scale
+  let panelY: CGFloat = size == 25 ? 1 : scale
+  let panelWidth: CGFloat = size == 25 ? 14 : 19 * scale
+  let panelHeight: CGFloat = size == 25 ? 17 : 23 * scale
+  let fontSize: CGFloat = size == 25 ? 7.4 : 10 * scale
+  let font = try robotoBoldFont(size: fontSize)
+
+  var mask = [UInt8](repeating: 0, count: size * size)
+  guard let context = CGContext(
+    data: &mask,
+    width: size,
+    height: size,
+    bitsPerComponent: 8,
+    bytesPerRow: size,
+    space: CGColorSpaceCreateDeviceGray(),
+    bitmapInfo: CGImageAlphaInfo.none.rawValue
+  ) else {
+    throw NSError(domain: "IconGenerator", code: 4)
+  }
+
+  context.setShouldAntialias(true)
+  context.setShouldSmoothFonts(true)
+  context.setAllowsFontSmoothing(true)
+  context.setFillColor(gray: 1, alpha: 1)
+  context.textMatrix = .identity
+
+  let panelBottom = CGFloat(size) - panelY - panelHeight
+  let halfHeight = panelHeight / 2
+  let attributes: [NSAttributedString.Key: Any] = [
+    NSAttributedString.Key(kCTFontAttributeName as String): font,
+    NSAttributedString.Key(kCTForegroundColorAttributeName as String): CGColor(gray: 1, alpha: 1),
+  ]
+
+  for (index, text) in ["22", "00"].enumerated() {
+    let line = CTLineCreateWithAttributedString(NSAttributedString(string: text, attributes: attributes))
+    var ascent: CGFloat = 0
+    var descent: CGFloat = 0
+    var leading: CGFloat = 0
+    let lineWidth = CGFloat(CTLineGetTypographicBounds(line, &ascent, &descent, &leading))
+    let regionBottom = panelBottom + (index == 0 ? halfHeight : 0)
+    let baseline = regionBottom + (halfHeight - ascent - descent) / 2 + descent
+    context.textPosition = CGPoint(
+      x: panelX + (panelWidth - lineWidth) / 2,
+      y: baseline
+    )
+    CTLineDraw(line, context)
+  }
+
+  for y in 0..<size {
+    for x in 0..<size {
+      let coverage = mask[y * size + x]
+      guard coverage > 0 else { continue }
+      let original = canvas.pixels[y * size + x]
+      let inverse = 255 - Int(coverage)
+      canvas.set(
+        x,
+        y,
+        RGB(
+          red: UInt8(Int(original.red) * inverse / 255),
+          green: UInt8(Int(original.green) * inverse / 255),
+          blue: UInt8(Int(original.blue) * inverse / 255)
+        )
+      )
+    }
+  }
 }
 
 func drawCodexWeekly(size: Int) -> PixelCanvas {
@@ -160,8 +247,8 @@ func drawCodexWeekly(size: Int) -> PixelCanvas {
 
   if size == 25 {
     let compactGlyphs: [Character: [String]] = [
-      "C": ["111", "100", "100", "100", "111"],
-      "O": ["111", "101", "101", "101", "111"],
+      "C": ["011", "100", "100", "100", "011"],
+      "O": ["010", "101", "101", "101", "010"],
       "D": ["110", "101", "101", "101", "110"],
       "E": ["111", "100", "110", "100", "111"],
       "X": ["101", "101", "010", "101", "101"],
@@ -174,10 +261,10 @@ func drawCodexWeekly(size: Int) -> PixelCanvas {
 
     for column in 0..<7 {
       let color = column == 6 ? black : lime
-      canvas.rect(x: 1 + column * 3, y: 8, width: 2, height: 3, color: color)
+      canvas.rect(x: 1 + column * 3, y: 7, width: 2, height: 3, color: color)
       if column == 6 {
-        canvas.rect(x: 19, y: 8, width: 3, height: 3, color: lime)
-        canvas.set(20, 9, black)
+        canvas.rect(x: 19, y: 7, width: 3, height: 3, color: lime)
+        canvas.set(20, 8, black)
       }
     }
 
@@ -186,10 +273,11 @@ func drawCodexWeekly(size: Int) -> PixelCanvas {
       [vividBlue, cyan, vividBlue, navy],
       [navy, vividBlue, cyan, vividBlue],
       [vividBlue, navy, vividBlue, cyan],
+      [cyan, vividBlue, cyan, vividBlue],
     ]
-    for row in 0..<4 {
+    for row in 0..<5 {
       for column in 0..<4 {
-        canvas.rect(x: 1 + column * 6, y: 13 + row * 3, width: 5, height: 2, color: heatmap[row][column])
+        canvas.rect(x: 3 + column * 5, y: 11 + row * 3, width: 4, height: 2, color: heatmap[row][column])
       }
     }
   } else {
@@ -213,10 +301,11 @@ func drawCodexWeekly(size: Int) -> PixelCanvas {
       [vividBlue, cyan, vividBlue, navy],
       [navy, vividBlue, cyan, vividBlue],
       [vividBlue, navy, vividBlue, cyan],
+      [cyan, vividBlue, cyan, vividBlue],
     ]
-    for row in 0..<4 {
+    for row in 0..<5 {
       for column in 0..<4 {
-        canvas.rect(x: 4 + column * 7, y: 17 + row * 4, width: 6, height: 3, color: heatmap[row][column])
+        canvas.rect(x: 3 + column * 7, y: 16 + row * 3, width: 5, height: 2, color: heatmap[row][column])
       }
     }
   }
@@ -296,7 +385,11 @@ for kind in IconKind.allCases {
   let appMaster = draw(kind, size: 32)
   for size in [32, 80, 144, 512] {
     let output = iconDirectory.appendingPathComponent("\(kind.rawValue)-icon-\(size).png")
-    try writePNG(scaled(appMaster, to: size), to: output)
+    var icon = scaled(appMaster, to: size)
+    if kind == .mosaicGrid {
+      try overlayRobotoMosaicDigits(on: &icon)
+    }
+    try writePNG(icon, to: output)
     print(output.path)
   }
 
@@ -305,6 +398,10 @@ for kind in IconKind.allCases {
     .appendingPathComponent("resources/images", isDirectory: true)
   try FileManager.default.createDirectory(at: resourceDirectory, withIntermediateDirectories: true)
   let menuOutput = resourceDirectory.appendingPathComponent("\(kind.rawValue)-menu-icon.png")
-  try writePNG(draw(kind, size: 25), to: menuOutput)
+  var menuIcon = draw(kind, size: 25)
+  if kind == .mosaicGrid {
+    try overlayRobotoMosaicDigits(on: &menuIcon)
+  }
+  try writePNG(menuIcon, to: menuOutput)
   print(menuOutput.path)
 }

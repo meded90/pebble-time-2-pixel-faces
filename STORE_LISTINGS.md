@@ -1,5 +1,43 @@
 # Appstore listing drafts
 
+## Starry Digits
+
+**Short description**
+
+Hand-drawn luminous digits over a swirling 64-color pixel-art night.
+
+**Full description**
+
+Starry Digits combines large two-row numerals with a moonlit sky built from
+bold pixel strokes. The quiet upper-left area keeps the time readable, while
+the moon, flowing blue lines and dark village silhouette carry the artwork
+across the Pebble Time 2 display.
+
+The watchface follows the system 12/24-hour preference, updates every minute
+and works completely offline. It has no settings, companion app, analytics or
+network permissions.
+
+**Permissions:** none.
+
+## Zodiac: Gemini
+
+**Short description**
+
+A vivid Gemini portrait with a large, rounded clock for Pebble Time 2.
+
+**Full description**
+
+Zodiac: Gemini pairs a vivid twin portrait with a large, rounded digital clock
+designed specifically for the 200×228 Pebble Time 2 display. Hours and minutes
+are stacked in a balanced card in the upper-left corner, leaving the original
+illustration clear and expressive.
+
+The watchface follows the system 12/24-hour preference, updates every minute
+and works completely offline. It has no settings, companion app, analytics or
+network permissions.
+
+**Permissions:** none.
+
 ## Mosaic Grid
 
 **Short description**
