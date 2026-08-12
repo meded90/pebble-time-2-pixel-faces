@@ -1,0 +1,92 @@
+{
+  "name": "starry-digits",
+  "author": "Kirill Baldin",
+  "version": "1.0.1",
+  "keywords": [
+    "pebble-app",
+    "watchface",
+    "art",
+    "starry-night",
+    "emery"
+  ],
+  "private": true,
+  "dependencies": {},
+  "pebble": {
+    "displayName": "Starry Digits",
+    "uuid": "e38199be-daae-4403-ba53-83601d8b76ab",
+    "sdkVersion": "3",
+    "enableMultiJS": true,
+    "targetPlatforms": [
+      "emery"
+    ],
+    "watchapp": {
+      "watchface": true
+    },
+    "messageKeys": [],
+    "resources": {
+      "media": [
+        {
+          "type": "png",
+          "name": "IMAGE_MENU_ICON",
+          "file": "images/starry-digits-menu-icon.png",
+          "menuIcon": true
+        },
+        {
+          "type": "bitmap",
+          "name": "IMAGE_BACKGROUND",
+          "file": "images/background.png"
+        },
+        {
+          "type": "bitmap",
+          "name": "IMAGE_DIGIT_0",
+          "file": "images/digits/digit-0.png"
+        },
+        {
+          "type": "bitmap",
+          "name": "IMAGE_DIGIT_1",
+          "file": "images/digits/digit-1.png"
+        },
+        {
+          "type": "bitmap",
+          "name": "IMAGE_DIGIT_2",
+          "file": "images/digits/digit-2.png"
+        },
+        {
+          "type": "bitmap",
+          "name": "IMAGE_DIGIT_3",
+          "file": "images/digits/digit-3.png"
+        },
+        {
+          "type": "bitmap",
+          "name": "IMAGE_DIGIT_4",
+          "file": "images/digits/digit-4.png"
+        },
+        {
+          "type": "bitmap",
+          "name": "IMAGE_DIGIT_5",
+          "file": "images/digits/digit-5.png"
+        },
+        {
+          "type": "bitmap",
+          "name": "IMAGE_DIGIT_6",
+          "file": "images/digits/digit-6.png"
+        },
+        {
+          "type": "bitmap",
+          "name": "IMAGE_DIGIT_7",
+          "file": "images/digits/digit-7.png"
+        },
+        {
+          "type": "bitmap",
+          "name": "IMAGE_DIGIT_8",
+          "file": "images/digits/digit-8.png"
+        },
+        {
+          "type": "bitmap",
+          "name": "IMAGE_DIGIT_9",
+          "file": "images/digits/digit-9.png"
+        }
+      ]
+    }
+  }
+}
