@@ -1,0 +1,38 @@
+{
+  "name": "meded90",
+  "author": "Kirill Baldin",
+  "version": "1.0.0",
+  "keywords": [
+    "pebble-app",
+    "watchface",
+    "portrait",
+    "pixel-art",
+    "emery"
+  ],
+  "private": true,
+  "dependencies": {},
+  "pebble": {
+    "displayName": "meded90",
+    "uuid": "1b94d8d0-d9ec-4eab-a547-bd0b55e3cc1b",
+    "sdkVersion": "3",
+    "enableMultiJS": true,
+    "targetPlatforms": [
+      "emery"
+    ],
+    "watchapp": {
+      "watchface": true
+    },
+    "messageKeys": [],
+    "resources": {
+      "media": [
+        {
+          "type": "bitmap",
+          "name": "IMAGE_BACKGROUND",
+          "file": "images/background.png",
+          "memoryFormat": "8bit",
+          "storageFormat": "pbi"
+        }
+      ]
+    }
+  }
+}
