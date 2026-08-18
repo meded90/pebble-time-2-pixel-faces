@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.6 — 2026-08-18
+
+- Show the T3 Code API-equivalent token cost for the active Codex quota period below the limit bar.
+- Keep the cost neutral as `-` when the local T3 Code usage or pricing cache is unavailable.
+
 ## 1.0.5 — 2026-08-12
 
 - Added reusable Cloud Run deployment scripts and step-by-step guides in Russian and English.

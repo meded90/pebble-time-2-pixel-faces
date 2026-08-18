@@ -8,6 +8,7 @@ enum {
   PERSIST_WEEK_LEFT = 1,
   PERSIST_RESET_TEXT = 2,
   PERSIST_ACTIVITY_MAP = 3,
+  PERSIST_RAW_COST_TEXT = 4,
 };
 
 static Window *s_window;
@@ -18,8 +19,10 @@ static int s_week_left;
 static int s_sync_state;
 static bool s_has_weekly_data;
 static bool s_has_activity_data;
+static bool s_has_raw_cost_data;
 static char s_reset_text[12] = "-";
 static char s_activity_map[ACTIVITY_COUNT + 1];
+static char s_raw_cost_text[16] = "-";
 
 static const GColor COLOR_WHITE = GColorFromHEX(0xFFFFFF);
 static const GColor COLOR_GRAY = GColorFromHEX(0x555555);
@@ -41,7 +44,7 @@ static const char *MONTH_NAMES[12] = {
 };
 
 static const char FONT_3X5_CHARS[] =
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789%:-.?";
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789%:-.?$";
 static const uint8_t FONT_3X5[][5] = {
   {2, 5, 7, 5, 5}, {6, 5, 6, 5, 6}, {3, 4, 4, 4, 3},
   {6, 5, 5, 5, 6}, {7, 4, 6, 4, 7}, {7, 4, 6, 4, 4},
@@ -57,7 +60,7 @@ static const uint8_t FONT_3X5[][5] = {
   {7, 4, 7, 5, 7}, {7, 1, 2, 2, 2}, {7, 5, 7, 5, 7},
   {7, 5, 7, 1, 7},
   {5, 1, 2, 4, 5}, {0, 2, 0, 2, 0}, {0, 0, 7, 0, 0},
-  {0, 0, 0, 0, 2}, {7, 1, 2, 0, 2},
+  {0, 0, 0, 0, 2}, {7, 1, 2, 0, 2}, {2, 7, 6, 3, 7},
 };
 
 static const uint8_t DIGITS_5X7[10][7] = {
@@ -114,6 +117,11 @@ static void draw_small_text(GContext *ctx, const char *text, int x, int y,
     }
     x += scale * 4;
   }
+}
+
+static int small_text_width(const char *text, int scale) {
+  const size_t length = strlen(text);
+  return length ? (int)length * scale * 4 - scale : 0;
 }
 
 static void draw_large_time(GContext *ctx) {
@@ -195,6 +203,10 @@ static void draw_weekly_limit(GContext *ctx) {
   } else {
     draw_small_text(ctx, "RESET -", 4, 126, 2, COLOR_LIGHT_GRAY);
   }
+
+  const char *cost_text = s_has_raw_cost_data ? s_raw_cost_text : "-";
+  draw_small_text(ctx, cost_text, 196 - small_text_width(cost_text, 2), 126,
+                  2, COLOR_LIGHT_GRAY);
 }
 
 static void draw_activity(GContext *ctx) {
@@ -325,6 +337,11 @@ static void save_status(void) {
   if (s_has_activity_data) {
     persist_write_string(PERSIST_ACTIVITY_MAP, s_activity_map);
   }
+  if (s_has_raw_cost_data) {
+    persist_write_string(PERSIST_RAW_COST_TEXT, s_raw_cost_text);
+  } else if (persist_exists(PERSIST_RAW_COST_TEXT)) {
+    persist_delete(PERSIST_RAW_COST_TEXT);
+  }
 }
 
 static void load_status(void) {
@@ -346,6 +363,11 @@ static void load_status(void) {
     persist_read_string(PERSIST_ACTIVITY_MAP, s_activity_map,
                         sizeof(s_activity_map));
   }
+  if (persist_exists(PERSIST_RAW_COST_TEXT)) {
+    s_has_raw_cost_data = true;
+    persist_read_string(PERSIST_RAW_COST_TEXT, s_raw_cost_text,
+                        sizeof(s_raw_cost_text));
+  }
 }
 
 static void inbox_received_handler(DictionaryIterator *iterator,
@@ -354,6 +376,7 @@ static void inbox_received_handler(DictionaryIterator *iterator,
   Tuple *reset_text = dict_find(iterator, MESSAGE_KEY_RESET_TEXT);
   Tuple *activity_map = dict_find(iterator, MESSAGE_KEY_ACTIVITY_MAP);
   Tuple *sync_state = dict_find(iterator, MESSAGE_KEY_SYNC_STATE);
+  Tuple *raw_cost_text = dict_find(iterator, MESSAGE_KEY_RAW_COST_TEXT);
 
   if (week_left) {
     s_has_weekly_data = true;
@@ -384,11 +407,18 @@ static void inbox_received_handler(DictionaryIterator *iterator,
     s_activity_map[ACTIVITY_COUNT] = '\0';
   }
 
+  if (raw_cost_text && raw_cost_text->type == TUPLE_CSTRING) {
+    const char *incoming = raw_cost_text->value->cstring;
+    s_has_raw_cost_data = incoming[0] == '$';
+    snprintf(s_raw_cost_text, sizeof(s_raw_cost_text), "%s",
+             s_has_raw_cost_data ? incoming : "-");
+  }
+
   if (sync_state) {
     s_sync_state = (int)sync_state->value->int32;
   }
 
-  if (week_left || reset_text || activity_map) {
+  if (week_left || reset_text || activity_map || raw_cost_text) {
     save_status();
   }
   layer_mark_dirty(s_canvas);

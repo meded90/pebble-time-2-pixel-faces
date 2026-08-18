@@ -11,6 +11,8 @@ A native Pebble Time 2 watchface (`emery`, 200×228) with:
 - oversized time;
 - the longest available Codex quota window;
 - remaining percentage and time until reset;
+- API-equivalent token cost for the active quota window, calculated with
+  the same model-aware pricing method as T3 Code;
 - a 12-week personal usage heatmap;
 - month labels and highlighted month boundaries;
 - background updates through PebbleKit JS.
@@ -40,13 +42,21 @@ Codex App Server provides `account/rateLimits/read` and
 the Mac. An OpenAI Platform API key is not a replacement because Platform API
 usage and personal ChatGPT/Codex limits are separate systems.
 
-The local bridge requests only quota and daily usage data, normalizes it, and
-serves compact JSON to PebbleKit JS. Its bearer token remains on the phone and
-is never sent to the watch.
+The local bridge requests quota and daily usage data and reads the cost from
+T3 Code's local `~/.t3/userdata/usage-scan-cache.json` and
+`usage-model-rates.json` files. It sums only Codex records inside the active
+quota window. Its bearer token remains on the phone and is never sent to the
+watch.
 
 Cloud Run uses the same App Server but stores a copy of Codex authentication
 in Secret Manager. This is experimental rather than a supported cloud OAuth
 contract; review the limitation in the Cloud Run guide before using it.
+
+The cost calculation requires T3 Code's local model, cached-input, and output token data,
+so the exact amount is available only through the local bridge on the Mac.
+When connected directly to Cloud Run the watchface shows `-` instead because
+`account/usage/read` exposes only daily aggregate tokens, which are insufficient
+to reproduce T3 Code's calculation.
 
 ## Sign into Codex
 
