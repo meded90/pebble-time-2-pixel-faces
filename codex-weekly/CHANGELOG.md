@@ -1,9 +1,14 @@
 # Changelog
 
+## 1.0.7 — 2026-08-18
+
+- Removed the API-equivalent token cost from the watchface.
+- Removed the local bridge dependency on T3 Code usage and pricing caches.
+- Restored the quota panel to the remaining percentage and reset countdown.
+
 ## 1.0.6 — 2026-08-18
 
-- Show the T3 Code API-equivalent token cost for the active Codex quota period below the limit bar.
-- Keep the cost neutral as `-` when the local T3 Code usage or pricing cache is unavailable.
+- Added an experimental API-equivalent token cost for the active Codex quota period.
 
 ## 1.0.5 — 2026-08-12
 

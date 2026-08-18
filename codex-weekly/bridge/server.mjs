@@ -3,8 +3,6 @@ import { spawn, spawnSync } from "node:child_process";
 import { createInterface } from "node:readline";
 import { timingSafeEqual } from "node:crypto";
 
-import { readT3RawCost } from "./t3-raw-cost.mjs";
-
 const host = process.env.CODEX_PEBBLE_HOST || "127.0.0.1";
 const port = Number(process.env.CODEX_PEBBLE_PORT || 8765);
 const accessToken = process.env.CODEX_PEBBLE_TOKEN || "";
@@ -309,34 +307,9 @@ async function readStatus() {
     codexRequest("account/rateLimits/read"),
     codexRequest("account/usage/read"),
   ]);
-  const weekly = selectWeeklyWindow(rateLimits);
-  const periodEndMs = Date.now();
-  const periodStartMs =
-    weekly.resetsAt * 1000 - weekly.windowDurationMins * 60 * 1000;
-  try {
-    const rawCost = await readT3RawCost({
-      startMs: periodStartMs,
-      endMs: periodEndMs,
-    });
-    weekly.rawCostUsd = rawCost.rawCostUsd;
-    console.log(
-      "[codex-weekly] T3 Code raw cost",
-      JSON.stringify({
-        rawCostUsd: rawCost.rawCostUsd,
-        pricedRecords: rawCost.pricedRecords,
-        unpricedRecords: rawCost.unpricedRecords,
-      }),
-    );
-  } catch (error) {
-    console.warn(
-      "[codex-weekly] T3 Code raw cost unavailable",
-      error instanceof Error ? error.message : String(error),
-    );
-  }
-
   const payload = {
     generatedAt: new Date().toISOString(),
-    weekly,
+    weekly: selectWeeklyWindow(rateLimits),
     activity: {
       ...buildActivity(usage.dailyUsageBuckets),
       summary: usage.summary || null,

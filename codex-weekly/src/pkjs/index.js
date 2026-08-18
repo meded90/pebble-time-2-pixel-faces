@@ -75,14 +75,6 @@ function sanitizeActivity(value) {
   return activity;
 }
 
-function formatRawCost(value) {
-  var cost = Number(value);
-  if (isNaN(cost) || !isFinite(cost) || cost < 0) {
-    return '-';
-  }
-  return '$' + cost.toFixed(2);
-}
-
 function sendStatus(payload) {
   Pebble.sendAppMessage(payload, function() {
     console.log('Codex status sent to watch');
@@ -100,8 +92,7 @@ function cacheAndSend(result) {
   var activity = result.activity || {};
   var activityMap = sanitizeActivity(activity.levels);
   var payload = {
-    SYNC_STATE: 2,
-    RAW_COST_TEXT: formatRawCost(weekly.rawCostUsd)
+    SYNC_STATE: 2
   };
 
   var rawLeft = Number(weekly.leftPercent);

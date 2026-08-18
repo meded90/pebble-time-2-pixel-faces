@@ -1,10 +1,7 @@
 {
   "name": "codex-weekly",
   "author": "Codex Weekly contributors",
-  "version": "1.0.6",
-  "scripts": {
-    "test": "node --test bridge/*.test.mjs"
-  },
+  "version": "1.0.7",
   "keywords": [
     "pebble-app",
     "watchface",
@@ -37,8 +34,7 @@
       "RESET_TEXT",
       "ACTIVITY_MAP",
       "SYNC_STATE",
-      "REQUEST_SYNC",
-      "RAW_COST_TEXT"
+      "REQUEST_SYNC"
     ],
     "resources": {
       "media": [
