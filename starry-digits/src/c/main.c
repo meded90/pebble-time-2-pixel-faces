@@ -58,6 +58,10 @@ static void reload_time_digit_bitmaps(void) {
 
 static void time_layer_update_proc(Layer *layer, GContext *ctx) {
   graphics_context_set_compositing_mode(ctx, GCompOpSet);
+  // Round (gabbro) anchors top-left like the emery/PT2 layout, but far enough
+  // in that the circle doesn't clip the grid's top-left corner (~40px inset).
+  const int origin_left = PBL_IF_ROUND_ELSE(40, TIME_LEFT);
+  const int origin_top = PBL_IF_ROUND_ELSE(40, TIME_TOP);
   for (int index = 0; index < 4; index++) {
     const int row = index / 2;
     const int column = index % 2;
@@ -67,8 +71,8 @@ static void time_layer_update_proc(Layer *layer, GContext *ctx) {
     }
 
     const GRect destination = GRect(
-      TIME_LEFT + column * DIGIT_WIDTH,
-      TIME_TOP + row * (DIGIT_HEIGHT + TIME_ROW_GAP),
+      origin_left + column * DIGIT_WIDTH,
+      origin_top + row * (DIGIT_HEIGHT + TIME_ROW_GAP),
       DIGIT_WIDTH,
       DIGIT_HEIGHT
     );
