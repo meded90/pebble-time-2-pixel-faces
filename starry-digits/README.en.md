@@ -4,12 +4,14 @@
 
 [![Starry Digits](../assets/screenshots/starry-digits.png)](../assets/screenshots/starry-digits.png)
 
-An artistic Pebble Time 2 watchface (`emery`, 200×228): luminous hand-drawn
-digits over a pixel-art night sky formed from swirling painted strokes.
+An artistic watchface for Pebble Time 2 (`emery`, 200×228) and Pebble Round 2
+(`gabbro`, 260×260): luminous hand-drawn digits over a pixel-art night sky
+formed from swirling painted strokes.
 
 ## Features
 
 - custom bitmap artwork for all ten digits;
+- dedicated background and safe layout for the 260×260 round display;
 - vertically stacked hours and minutes;
 - system 12/24-hour preference;
 - updates once per minute;
@@ -20,6 +22,7 @@ digits over a pixel-art night sky formed from swirling painted strokes.
 ```bash
 pebble build
 pebble install --emulator emery --logs
+pebble install --emulator gabbro --logs
 ```
 
 Ready package: [`../dist/starry-digits.pbw`](../dist/starry-digits.pbw).

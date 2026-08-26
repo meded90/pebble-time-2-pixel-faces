@@ -21,8 +21,13 @@ static const uint32_t DIGIT_RESOURCE_IDS[10] = {
 };
 
 enum {
+#if defined(PBL_ROUND)
+  TIME_LEFT = 48,
+  TIME_TOP = 56,
+#else
   TIME_LEFT = 8,
   TIME_TOP = 16,
+#endif
   DIGIT_WIDTH = 48,
   DIGIT_HEIGHT = 58,
   TIME_ROW_GAP = 0,

@@ -1,13 +1,15 @@
 {
   "name": "starry-digits",
   "author": "Kirill Baldin",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "keywords": [
     "pebble-app",
     "watchface",
     "art",
     "starry-night",
-    "emery"
+    "emery",
+    "gabbro",
+    "round"
   ],
   "private": true,
   "dependencies": {},
@@ -17,7 +19,8 @@
     "sdkVersion": "3",
     "enableMultiJS": true,
     "targetPlatforms": [
-      "emery"
+      "emery",
+      "gabbro"
     ],
     "watchapp": {
       "watchface": true

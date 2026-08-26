@@ -11,7 +11,8 @@ Hand-drawn luminous digits over a swirling 64-color pixel-art night.
 Starry Digits combines large two-row numerals with a moonlit sky built from
 bold pixel strokes. The quiet upper-left area keeps the time readable, while
 the moon, flowing blue lines and dark village silhouette carry the artwork
-across the Pebble Time 2 display.
+across both Pebble Time 2 and Pebble Round 2. Each display uses its own native
+background and layout.
 
 The watchface follows the system 12/24-hour preference, updates every minute
 and works completely offline. It has no settings, companion app, analytics or
