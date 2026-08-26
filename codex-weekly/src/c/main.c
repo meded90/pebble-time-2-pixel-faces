@@ -20,6 +20,7 @@ static bool s_has_weekly_data;
 static bool s_has_activity_data;
 static char s_reset_text[12] = "-";
 static char s_activity_map[ACTIVITY_COUNT + 1];
+static char s_error_code[6] = "SET";
 
 static const GColor COLOR_WHITE = GColorFromHEX(0xFFFFFF);
 static const GColor COLOR_GRAY = GColorFromHEX(0x555555);
@@ -281,6 +282,16 @@ static void draw_sync_indicator(GContext *ctx) {
     color = COLOR_RED;
   }
   fill_rect(ctx, GRect(188, 3, 10, 10), color);
+
+  GColor status_color = COLOR_LIGHT_GRAY;
+  if (s_sync_state == 1) {
+    status_color = COLOR_CYAN;
+  } else if (s_sync_state == 2) {
+    status_color = COLOR_LIME;
+  } else if (s_sync_state == 3) {
+    status_color = COLOR_RED;
+  }
+  draw_small_text(ctx, s_error_code, 164, 5, 1, status_color);
 }
 
 static void canvas_update_proc(Layer *layer, GContext *ctx) {
@@ -327,6 +338,33 @@ static void save_status(void) {
   }
 }
 
+static void clear_status(void) {
+  s_has_weekly_data = false;
+  s_has_activity_data = false;
+  s_week_left = 0;
+  snprintf(s_reset_text, sizeof(s_reset_text), "-");
+  for (int index = 0; index < ACTIVITY_COUNT; ++index) {
+    s_activity_map[index] = '0';
+  }
+  s_activity_map[ACTIVITY_COUNT] = '\0';
+  persist_delete(PERSIST_WEEK_LEFT);
+  persist_delete(PERSIST_RESET_TEXT);
+  persist_delete(PERSIST_ACTIVITY_MAP);
+}
+
+static void set_error_code(const char *incoming) {
+  if (!incoming || !incoming[0]) {
+    snprintf(s_error_code, sizeof(s_error_code), "ERR");
+    return;
+  }
+  snprintf(s_error_code, sizeof(s_error_code), "%s", incoming);
+  for (int index = 0; s_error_code[index]; ++index) {
+    if (s_error_code[index] >= 'a' && s_error_code[index] <= 'z') {
+      s_error_code[index] -= 'a' - 'A';
+    }
+  }
+}
+
 static void load_status(void) {
   for (int index = 0; index < ACTIVITY_COUNT; ++index) {
     s_activity_map[index] = '0';
@@ -354,6 +392,7 @@ static void inbox_received_handler(DictionaryIterator *iterator,
   Tuple *reset_text = dict_find(iterator, MESSAGE_KEY_RESET_TEXT);
   Tuple *activity_map = dict_find(iterator, MESSAGE_KEY_ACTIVITY_MAP);
   Tuple *sync_state = dict_find(iterator, MESSAGE_KEY_SYNC_STATE);
+  Tuple *error_code = dict_find(iterator, MESSAGE_KEY_ERROR_CODE);
 
   if (week_left) {
     s_has_weekly_data = true;
@@ -386,6 +425,12 @@ static void inbox_received_handler(DictionaryIterator *iterator,
 
   if (sync_state) {
     s_sync_state = (int)sync_state->value->int32;
+  }
+  if (error_code && error_code->type == TUPLE_CSTRING) {
+    set_error_code(error_code->value->cstring);
+  }
+  if (s_sync_state == 3) {
+    clear_status();
   }
 
   if (week_left || reset_text || activity_map) {

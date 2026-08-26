@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.8 — 2026-08-21
+
+- Show the Cloud Run state or a safe error code next to the sync indicator.
+- Clear persisted quota values after a server failure so the watchface shows `—` and gray cells instead of stale data.
+- Return safe `AUTH`, `TIME`, `DATA`, or `ERR` codes from the Cloud Run endpoint.
+
 ## 1.0.7 — 2026-08-18
 
 - Removed the API-equivalent token cost from the watchface.

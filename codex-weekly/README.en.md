@@ -17,7 +17,10 @@ A native Pebble Time 2 watchface (`emery`, 200×228) with:
 
 The square in the upper-right corner shows synchronization state: gray means
 not configured, blue means updating, green means data was received, and red
-means a connection or response error.
+means a connection or response error. The adjacent short server label is
+`SET`, `SYNC`, `OK`, or a safe error code: `AUTH`, `TOKEN`, `TIME`, `NET`,
+`DATA`, or `ERR`. On an error, stored quota data is cleared so the watchface
+shows `—` and gray cells instead of stale data.
 
 ## Cloud Run setup
 

@@ -1,7 +1,7 @@
 {
   "name": "codex-weekly",
   "author": "Codex Weekly contributors",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "keywords": [
     "pebble-app",
     "watchface",
@@ -34,7 +34,8 @@
       "RESET_TEXT",
       "ACTIVITY_MAP",
       "SYNC_STATE",
-      "REQUEST_SYNC"
+      "REQUEST_SYNC",
+      "ERROR_CODE"
     ],
     "resources": {
       "media": [

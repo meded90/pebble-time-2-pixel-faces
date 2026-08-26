@@ -23,6 +23,9 @@ PebbleKit JS ── HTTPS + client token ──> your Cloud Run service
 - `GET /health` publicly reports container readiness.
 - `GET /status` requires `Authorization: Bearer <token>` and returns only the
   normalized quota window for `limitId: "codex"`.
+- On `503`, the endpoint includes a safe code: `AUTH` (expired Codex login),
+  `TIME` (timeout), `DATA` (no main quota), or `ERR`. It never exposes a
+  secret or the detailed upstream error.
 - The service never exposes credentials, chat history, or arbitrary App Server
   RPC methods.
 - Cloud Run scales to zero and is limited to one instance.
@@ -225,6 +228,10 @@ gcloud run services logs read "$CLOUD_RUN_SERVICE_NAME" \
   --region="$CLOUD_RUN_REGION" \
   --limit=100
 ```
+
+The watchface displays this safe code beside the sync square and clears stale
+quota values. `AUTH` means: run `codex login` again, upload a fresh auth secret
+in step 5, and deploy a new revision in step 6.
 
 ## 9. Connect the watchface
 

@@ -189,6 +189,23 @@ function selectMainWindow(rateLimitResult) {
   };
 }
 
+function classifyStatusError(error) {
+  const message = error instanceof Error ? error.message.toLowerCase() : "";
+  if (message.includes("token_expired") ||
+      message.includes("invalid refresh token") ||
+      message.includes("could not be refreshed") ||
+      message.includes("401 unauthorized")) {
+    return "AUTH";
+  }
+  if (message.includes("timed out") || message.includes("timeout")) {
+    return "TIME";
+  }
+  if (message.includes("main quota window")) {
+    return "DATA";
+  }
+  return "ERR";
+}
+
 async function readStatus() {
   if (statusCache?.expiresAt > Date.now()) {
     return statusCache.payload;
@@ -233,7 +250,10 @@ const server = createServer(async (request, response) => {
     sendJson(response, 200, await readStatus());
   } catch (error) {
     console.error("[codex-weekly] status failed", error instanceof Error ? error.message : error);
-    sendJson(response, 503, { error: "Quota temporarily unavailable" });
+    sendJson(response, 503, {
+      error: "Quota temporarily unavailable",
+      code: classifyStatusError(error),
+    });
   }
 });
 

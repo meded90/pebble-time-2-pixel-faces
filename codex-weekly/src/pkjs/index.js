@@ -83,8 +83,29 @@ function sendStatus(payload) {
   });
 }
 
-function sendSyncState(state) {
-  sendStatus({ SYNC_STATE: state });
+function sendSyncState(state, errorCode) {
+  var payload = { SYNC_STATE: state };
+  if (errorCode) {
+    payload.ERROR_CODE = errorCode;
+  }
+  sendStatus(payload);
+}
+
+function normalizeErrorCode(value) {
+  var code = typeof value === 'string' ? value.toUpperCase() : '';
+  return /^(AUTH|TIME|DATA|ERR|TOKEN|NET)$/.test(code) ? code : 'ERR';
+}
+
+function parseErrorCode(value) {
+  try {
+    return JSON.parse(value).code;
+  } catch (error) {
+    return 'ERR';
+  }
+}
+
+function sendSyncError(errorCode) {
+  sendSyncState(3, normalizeErrorCode(errorCode));
 }
 
 function cacheAndSend(result) {
@@ -92,7 +113,8 @@ function cacheAndSend(result) {
   var activity = result.activity || {};
   var activityMap = sanitizeActivity(activity.levels);
   var payload = {
-    SYNC_STATE: 2
+    SYNC_STATE: 2,
+    ERROR_CODE: 'OK'
   };
 
   var rawLeft = Number(weekly.leftPercent);
@@ -139,17 +161,22 @@ function scheduleNext(settings) {
 function fetchCodexStatus(settings) {
   var url = normalizeStatusUrl(settings.bridgeUrl);
   if (!url) {
-    sendSyncState(0);
+    sendSyncState(0, 'SET');
     return;
   }
 
-  sendSyncState(1);
+  sendSyncState(1, 'SYNC');
   var request = new XMLHttpRequest();
   request.timeout = 15000;
   request.onload = function() {
     if (request.status < 200 || request.status >= 300) {
       console.log('Codex bridge HTTP status: ' + request.status);
-      sendSyncState(3);
+      var errorCode = request.status === 401 || request.status === 403
+        ? 'TOKEN'
+        : request.status === 503
+          ? normalizeErrorCode(parseErrorCode(request.responseText))
+          : 'NET';
+      sendSyncError(errorCode);
       scheduleNext(settings);
       return;
     }
@@ -158,16 +185,20 @@ function fetchCodexStatus(settings) {
       cacheAndSend(JSON.parse(request.responseText));
     } catch (error) {
       console.log('Codex bridge response error: ' + error);
-      sendSyncState(3);
+      sendSyncError('DATA');
     }
     scheduleNext(settings);
   };
   request.onerror = function() {
     console.log('Codex bridge request failed');
-    sendSyncState(3);
+    sendSyncError('NET');
     scheduleNext(settings);
   };
-  request.ontimeout = request.onerror;
+  request.ontimeout = function() {
+    console.log('Codex bridge request timed out');
+    sendSyncError('TIME');
+    scheduleNext(settings);
+  };
   request.open('GET', url);
   if (settings.bridgeToken) {
     request.setRequestHeader('Authorization', 'Bearer ' + settings.bridgeToken);
@@ -188,7 +219,7 @@ Pebble.addEventListener('webviewclosed', function(event) {
     fetchCodexStatus(saveSettingsFromResponse(event.response));
   } catch (error) {
     console.log('Codex settings response error: ' + error);
-    sendSyncState(3);
+    sendSyncError('DATA');
   }
 });
 
