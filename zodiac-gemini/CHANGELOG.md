@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.4.0 — 2026-08-20
+
+- Replaced the system number font with the supplied hand-drawn digit sprite.
+- Kept every glyph at its original pixel scale without stretching or shrinking.
+- Arranged hours and minutes in two balanced rows in the upper-left corner.
+- Removed the white JPEG background and preserved clean transparent edges.
+
 ## 1.3.1 — 2026-08-11
 
 - Added a high-contrast Gemini menu icon for the Pebble launcher.

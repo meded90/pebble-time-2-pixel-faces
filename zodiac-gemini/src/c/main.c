@@ -3,16 +3,41 @@
 static Window *s_window;
 static BitmapLayer *s_background_layer;
 static GBitmap *s_background_bitmap;
-static TextLayer *s_hour_layer;
-static TextLayer *s_minute_layer;
-static char s_hour_text[3];
-static char s_minute_text[3];
+static BitmapLayer *s_digit_layers[4];
+static GBitmap *s_digit_bitmaps[4];
+static int8_t s_digit_values[4] = {-1, -1, -1, -1};
 
-static void configure_time_layer(TextLayer *layer) {
-  text_layer_set_background_color(layer, GColorClear);
-  text_layer_set_text_color(layer, GColorBlack);
-  text_layer_set_font(layer, fonts_get_system_font(FONT_KEY_LECO_38_BOLD_NUMBERS));
-  text_layer_set_text_alignment(layer, GTextAlignmentCenter);
+static const uint32_t s_digit_resource_ids[10] = {
+  RESOURCE_ID_IMAGE_DIGIT_0,
+  RESOURCE_ID_IMAGE_DIGIT_1,
+  RESOURCE_ID_IMAGE_DIGIT_2,
+  RESOURCE_ID_IMAGE_DIGIT_3,
+  RESOURCE_ID_IMAGE_DIGIT_4,
+  RESOURCE_ID_IMAGE_DIGIT_5,
+  RESOURCE_ID_IMAGE_DIGIT_6,
+  RESOURCE_ID_IMAGE_DIGIT_7,
+  RESOURCE_ID_IMAGE_DIGIT_8,
+  RESOURCE_ID_IMAGE_DIGIT_9,
+};
+
+static void set_digit(uint8_t position, uint8_t value) {
+  if (position >= 4 || value > 9 || !s_digit_layers[position]
+      || s_digit_values[position] == value) {
+    return;
+  }
+
+  GBitmap *next_bitmap = gbitmap_create_with_resource(s_digit_resource_ids[value]);
+  if (!next_bitmap) {
+    return;
+  }
+
+  GBitmap *previous_bitmap = s_digit_bitmaps[position];
+  s_digit_bitmaps[position] = next_bitmap;
+  s_digit_values[position] = value;
+  bitmap_layer_set_bitmap(s_digit_layers[position], next_bitmap);
+  if (previous_bitmap) {
+    gbitmap_destroy(previous_bitmap);
+  }
 }
 
 static void update_time(struct tm *tick_time) {
@@ -24,12 +49,10 @@ static void update_time(struct tm *tick_time) {
     }
   }
 
-  snprintf(s_hour_text, sizeof(s_hour_text), "%02d", hour);
-  snprintf(s_minute_text, sizeof(s_minute_text), "%02d", tick_time->tm_min);
-  if (s_hour_layer && s_minute_layer) {
-    text_layer_set_text(s_hour_layer, s_hour_text);
-    text_layer_set_text(s_minute_layer, s_minute_text);
-  }
+  set_digit(0, hour / 10);
+  set_digit(1, hour % 10);
+  set_digit(2, tick_time->tm_min / 10);
+  set_digit(3, tick_time->tm_min % 10);
 }
 
 static void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
@@ -54,24 +77,36 @@ static void window_load(Window *window) {
   bitmap_layer_set_compositing_mode(s_background_layer, GCompOpSet);
   layer_add_child(root_layer, bitmap_layer_get_layer(s_background_layer));
 
-  s_hour_layer = text_layer_create(GRect(5, 3, 64, 46));
-  s_minute_layer = text_layer_create(GRect(5, 49, 64, 46));
-  if (!s_hour_layer || !s_minute_layer) {
-    return;
+  const GRect digit_frames[4] = {
+    GRect(1, 2, 50, 64),
+    GRect(39, 2, 50, 64),
+    GRect(1, 61, 50, 64),
+    GRect(39, 61, 50, 64),
+  };
+  for (uint8_t index = 0; index < 4; index++) {
+    s_digit_layers[index] = bitmap_layer_create(digit_frames[index]);
+    if (!s_digit_layers[index]) {
+      return;
+    }
+    bitmap_layer_set_compositing_mode(s_digit_layers[index], GCompOpSet);
+    layer_add_child(root_layer, bitmap_layer_get_layer(s_digit_layers[index]));
   }
 
-  configure_time_layer(s_hour_layer);
-  configure_time_layer(s_minute_layer);
-  layer_add_child(root_layer, text_layer_get_layer(s_hour_layer));
-  layer_add_child(root_layer, text_layer_get_layer(s_minute_layer));
+  time_t now = time(NULL);
+  update_time(localtime(&now));
 }
 
 static void window_unload(Window *window) {
-  if (s_hour_layer) {
-    text_layer_destroy(s_hour_layer);
-  }
-  if (s_minute_layer) {
-    text_layer_destroy(s_minute_layer);
+  for (uint8_t index = 0; index < 4; index++) {
+    if (s_digit_layers[index]) {
+      bitmap_layer_destroy(s_digit_layers[index]);
+      s_digit_layers[index] = NULL;
+    }
+    if (s_digit_bitmaps[index]) {
+      gbitmap_destroy(s_digit_bitmaps[index]);
+      s_digit_bitmaps[index] = NULL;
+    }
+    s_digit_values[index] = -1;
   }
   if (s_background_layer) {
     bitmap_layer_destroy(s_background_layer);
@@ -89,8 +124,6 @@ static void init(void) {
   });
   window_stack_push(s_window, true);
 
-  time_t now = time(NULL);
-  update_time(localtime(&now));
   tick_timer_service_subscribe(MINUTE_UNIT, tick_handler);
 }
 

@@ -8,6 +8,14 @@
 - **Public page:** https://apps.repebble.com/a1c61f1227144535accbf53c
 - **Published release:** `1.3.1`
 
+## Local release candidate
+
+- **Version:** `1.4.0`
+- **Status:** built and emulator-checked, not published
+- **Change:** hand-drawn sprite digits at their original pixel scale
+- **Layout:** hours above minutes in the upper-left corner
+- **Resource use:** 12,072 bytes of the 256 KB Emery resource budget
+
 ## Listing fields
 
 - **App Name:** Zodiac: Gemini

@@ -51,35 +51,20 @@ inputContext.draw(
 )
 
 for index in stride(from: 0, to: inputPixels.count, by: 4) {
-  let brightest = max(inputPixels[index], inputPixels[index + 1], inputPixels[index + 2])
-  if brightest < 30 {
-    inputPixels[index] = 0
-    inputPixels[index + 1] = 0
-    inputPixels[index + 2] = 0
+  let red = Double(inputPixels[index])
+  let green = Double(inputPixels[index + 1])
+  let blue = Double(inputPixels[index + 2])
+  let luminance = UInt8(min(255, max(0, (0.2126 * red + 0.7152 * green + 0.0722 * blue).rounded())))
+  let darkness = 255 - luminance
+
+  inputPixels[index] = 0
+  inputPixels[index + 1] = 0
+  inputPixels[index + 2] = 0
+  if darkness < 20 {
     inputPixels[index + 3] = 0
   } else {
-    inputPixels[index + 3] = 255
+    inputPixels[index + 3] = UInt8(min(3, (Int(darkness) + 42) / 85) * 85)
   }
-}
-
-guard
-  let inputProvider = CGDataProvider(data: Data(inputPixels) as CFData),
-  let transparentInput = CGImage(
-    width: inputWidth,
-    height: inputHeight,
-    bitsPerComponent: 8,
-    bitsPerPixel: 32,
-    bytesPerRow: inputBytesPerRow,
-    space: colorSpace,
-    bitmapInfo: bitmapInfo,
-    provider: inputProvider,
-    decode: nil,
-    shouldInterpolate: false,
-    intent: .defaultIntent
-  )
-else {
-  fputs("Unable to prepare transparent source\n", stderr)
-  exit(1)
 }
 
 struct DigitCell {
@@ -88,32 +73,25 @@ struct DigitCell {
 }
 
 let cells = [
-  DigitCell(digit: 9, rect: CGRect(x: 8, y: 2, width: 46, height: 58)),
-  DigitCell(digit: 8, rect: CGRect(x: 52, y: 2, width: 46, height: 58)),
-  DigitCell(digit: 7, rect: CGRect(x: 97, y: 2, width: 40, height: 58)),
-  DigitCell(digit: 6, rect: CGRect(x: 136, y: 2, width: 44, height: 58)),
-  DigitCell(digit: 5, rect: CGRect(x: 10, y: 60, width: 46, height: 58)),
-  DigitCell(digit: 4, rect: CGRect(x: 54, y: 60, width: 44, height: 58)),
-  DigitCell(digit: 3, rect: CGRect(x: 98, y: 60, width: 42, height: 58)),
-  DigitCell(digit: 2, rect: CGRect(x: 138, y: 60, width: 44, height: 58)),
-  DigitCell(digit: 1, rect: CGRect(x: 8, y: 116, width: 48, height: 58)),
-  DigitCell(digit: 0, rect: CGRect(x: 54, y: 116, width: 48, height: 58)),
+  DigitCell(digit: 9, rect: CGRect(x: 4, y: 4, width: 49, height: 64)),
+  DigitCell(digit: 8, rect: CGRect(x: 53, y: 4, width: 45, height: 64)),
+  DigitCell(digit: 7, rect: CGRect(x: 98, y: 4, width: 34, height: 64)),
+  DigitCell(digit: 6, rect: CGRect(x: 138, y: 4, width: 44, height: 64)),
+  DigitCell(digit: 5, rect: CGRect(x: 5, y: 68, width: 48, height: 61)),
+  DigitCell(digit: 4, rect: CGRect(x: 53, y: 68, width: 44, height: 61)),
+  DigitCell(digit: 3, rect: CGRect(x: 99, y: 68, width: 40, height: 61)),
+  DigitCell(digit: 2, rect: CGRect(x: 139, y: 68, width: 45, height: 61)),
+  DigitCell(digit: 1, rect: CGRect(x: 5, y: 129, width: 48, height: 62)),
+  DigitCell(digit: 0, rect: CGRect(x: 53, y: 129, width: 49, height: 62)),
 ]
 
-let outputWidth = 28
-let outputHeight = 40
-let contentWidth = 24
-let contentHeight = 36
+let outputWidth = 50
+let outputHeight = 64
 
 try FileManager.default.createDirectory(
   at: outputDirectory,
   withIntermediateDirectories: true
 )
-
-@inline(__always)
-func pebbleChannel(_ value: UInt8) -> UInt8 {
-  UInt8(min(3, (Int(value) + 42) / 85) * 85)
-}
 
 func visibleBounds(in cell: CGRect) -> CGRect? {
   let minCellX = max(0, Int(cell.minX))
@@ -151,55 +129,41 @@ func visibleBounds(in cell: CGRect) -> CGRect? {
 }
 
 for cell in cells {
-  guard
-    let bounds = visibleBounds(in: cell.rect),
-    let cropped = transparentInput.cropping(to: bounds)
-  else {
+  guard let bounds = visibleBounds(in: cell.rect) else {
     fputs("Unable to isolate digit \(cell.digit)\n", stderr)
     exit(1)
   }
 
-  let scale = min(
-    CGFloat(contentWidth) / CGFloat(cropped.width),
-    CGFloat(contentHeight) / CGFloat(cropped.height)
-  )
-  let drawWidth = max(1, Int((CGFloat(cropped.width) * scale).rounded()))
-  let drawHeight = max(1, Int((CGFloat(cropped.height) * scale).rounded()))
+  let sourceX = Int(bounds.minX)
+  let sourceY = Int(bounds.minY)
+  let drawWidth = Int(bounds.width)
+  let drawHeight = Int(bounds.height)
   let drawX = (outputWidth - drawWidth) / 2
   let drawY = (outputHeight - drawHeight) / 2
   let outputBytesPerRow = outputWidth * 4
   var outputPixels = [UInt8](repeating: 0, count: outputBytesPerRow * outputHeight)
 
-  guard let outputContext = CGContext(
-    data: &outputPixels,
-    width: outputWidth,
-    height: outputHeight,
-    bitsPerComponent: 8,
-    bytesPerRow: outputBytesPerRow,
-    space: colorSpace,
-    bitmapInfo: bitmapInfo.rawValue
-  ) else {
-    fputs("Unable to create output context\n", stderr)
-    exit(1)
+  for y in 0..<drawHeight {
+    for x in 0..<drawWidth {
+      let inputIndex = (sourceY + y) * inputBytesPerRow + (sourceX + x) * 4
+            let outputIndex = (drawY + y) * outputBytesPerRow + (drawX + x) * 4
+      outputPixels[outputIndex] = inputPixels[inputIndex]
+      outputPixels[outputIndex + 1] = inputPixels[inputIndex + 1]
+      outputPixels[outputIndex + 2] = inputPixels[inputIndex + 2]
+      outputPixels[outputIndex + 3] = inputPixels[inputIndex + 3]
+    }
   }
 
-  outputContext.interpolationQuality = .none
-  outputContext.draw(
-    cropped,
-    in: CGRect(x: drawX, y: drawY, width: drawWidth, height: drawHeight)
-  )
-
   for index in stride(from: 0, to: outputPixels.count, by: 4) {
-    if outputPixels[index + 3] < 128 {
+    if outputPixels[index + 3] < 43 {
       outputPixels[index] = 0
       outputPixels[index + 1] = 0
       outputPixels[index + 2] = 0
       outputPixels[index + 3] = 0
     } else {
-      outputPixels[index] = pebbleChannel(outputPixels[index])
-      outputPixels[index + 1] = pebbleChannel(outputPixels[index + 1])
-      outputPixels[index + 2] = pebbleChannel(outputPixels[index + 2])
-      outputPixels[index + 3] = 255
+      outputPixels[index] = 0
+      outputPixels[index + 1] = 0
+      outputPixels[index + 2] = 0
     }
   }
 
@@ -241,4 +205,4 @@ for cell in cells {
   }
 }
 
-print("Created 10 transparent digit sprites at \(outputWidth)x\(outputHeight)")
+print("Created 10 transparent digit sprites at original glyph scale in \(outputWidth)x\(outputHeight) cells")
