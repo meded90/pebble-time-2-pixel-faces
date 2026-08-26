@@ -73,6 +73,18 @@ pebble emu-heart-rate --emulator emery 72
 pebble screenshot --emulator emery screenshot.png
 ```
 
+### Browser-based testing alternative
+
+For testing, you can also use
+[pebble-qemu-wasm](https://github.com/ericmigi/pebble-qemu-wasm) as an alternative
+to the SDK emulator. It runs Pebble in WebAssembly and displays the watch screen
+directly in the browser. Try the
+[live demo](https://ericmigi.github.io/pebble-qemu-wasm/) or follow the project's
+README to run it locally. This is useful for visual and interactive checks,
+including through the Browser plugin in Codex: inspect the result, press watch
+buttons with the mouse or keyboard, click through menus, and verify UI behavior.
+It is an additional testing option, not a replacement for a final test on a watch.
+
 ## Install on a watch
 
 ```bash
