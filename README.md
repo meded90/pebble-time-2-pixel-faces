@@ -2,7 +2,10 @@
 
 [Русский](README.md) · [English](README.en.md)
 
-Также в репозитории есть `voice-drop` — отдельное автономное watchapp-приложение,
+Также в репозитории есть три отдельных watchapp-приложения:
+[`gym-zones`](gym-zones/) для силовых тренировок, пульсовых зон, отдыха и
+одно­минутного PPG-HRV; [`wrist-agent`](wrist-agent/) — голосовой frontend для
+ChatGPT Workspace Agent с private bridge и MCP callback; а также `voice-drop`,
 которое пишет звук микрофоном Pebble Time 2, а не телефоном. Для него нужны патч
 PebbleOS, общий iOS/Android-мост в приложении Core Devices и небольшой Telegram
 сервер. Начните с [`voice-drop/README.md`](voice-drop/README.md), затем смотрите
@@ -55,8 +58,28 @@ pebble sdk install latest
 make build
 ```
 
-Отдельные watchapp-приложения собираются командой `make apps`. Для
-`voice-drop` нужен специальный пропатченный SDK, описанный в его README.
+Watchapp `gym-zones` собирается отдельно SDK 4.33.1:
+
+```bash
+make gym-zones PEBBLE="$PWD/.venv/bin/pebble"
+```
+
+Wrist Agent использует тот же публичный SDK, а server bridge проверяется
+отдельно:
+
+```bash
+make wrist-agent PEBBLE="$PWD/.venv/bin/pebble"
+npm --prefix wrist-agent-server test
+```
+
+Проверенная сборка приложения находится в `dist/gym-zones.pbw`; скриншоты,
+управление и границы аппаратной проверки описаны в
+[`gym-zones/README.md`](gym-zones/README.md) и
+[`gym-zones/VALIDATION.md`](gym-zones/VALIDATION.md).
+
+Общий `make apps` последовательно собирает и `voice-drop`, которому нужен другой,
+специально пропатченный SDK, описанный в его README. Поэтому для проверки только
+Gym Zones или Wrist Agent используйте отдельные цели выше.
 
 Готовые пакеты появятся внутри:
 
@@ -69,6 +92,7 @@ starry-digits/build/*.pbw
 meded90/build/*.pbw
 zodiac-aquarius/build/*.pbw
 zodiac-gemini/build/*.pbw
+wrist-agent/build/*.pbw
 ```
 
 ## Локальная разработка и тестирование
@@ -156,7 +180,9 @@ dist/starry-digits.pbw
 dist/meded90.pbw
 dist/zodiac-aquarius.pbw
 dist/zodiac-gemini.pbw
+dist/gym-zones.pbw
 dist/voice-drop.pbw
+dist/wrist-agent.pbw
 ```
 
 `dist/voice-drop.pbw` относится к старому прототипу с записью через телефон.

@@ -1,0 +1,94 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="320" viewBox="0 0 720 320">
+  <defs>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="7" flood-color="#000000" flood-opacity="0.8"/>
+    </filter>
+    <linearGradient id="steel" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#333333"/>
+      <stop offset="1" stop-color="#111111"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="720" height="320" fill="#000000"/>
+  <path d="M0 0h720v25H0zM0 295h720v25H0z" fill="#444444"/>
+  <path d="M0 25h720v7H0zM0 288h720v7H0z" fill="#222222"/>
+  <rect x="0" y="32" width="720" height="256" fill="url(#steel)"/>
+  <path d="M360 32h360v256H323z" fill="#000000" opacity="0.55"/>
+
+  <rect x="42" y="55" width="38" height="12" fill="#55aaff"/>
+  <rect x="86" y="55" width="38" height="12" fill="#55ffaa"/>
+  <rect x="130" y="55" width="38" height="12" fill="#ffff55"/>
+  <rect x="174" y="55" width="38" height="12" fill="#ffaa00"/>
+  <rect x="218" y="55" width="38" height="12" fill="#ff0055"/>
+
+  <text x="40" y="126" fill="#ffffff" font-family="Arial, Helvetica, sans-serif"
+        font-size="54" font-weight="800" letter-spacing="2">GYM ZONES</text>
+  <text x="42" y="164" fill="#aaaaaa" font-family="Arial, Helvetica, sans-serif"
+        font-size="20" font-weight="700" letter-spacing="3">PEBBLE TIME 2</text>
+  <path d="M42 196h24l14-41 25 73 22-58 16 34h41"
+        fill="none" stroke="#ffffff" stroke-width="8" stroke-linejoin="miter"/>
+  <text x="42" y="266" fill="#dddddd" font-family="Arial, Helvetica, sans-serif"
+        font-size="17" font-weight="700" letter-spacing="1.4">TIME · HR ZONES · REST · HRV</text>
+
+  <g filter="url(#shadow)">
+    <rect x="375" y="41" width="196" height="238" rx="13" fill="#555555"/>
+    <rect x="385" y="51" width="176" height="201" fill="#000000"/>
+    <g fill="#ddddaa">
+      <rect x="427" y="57" width="8" height="5"/><rect x="438" y="57" width="8" height="5"/>
+      <rect x="449" y="57" width="8" height="5"/><rect x="460" y="57" width="8" height="5"/>
+      <rect x="471" y="57" width="8" height="5"/><rect x="482" y="57" width="8" height="5"/>
+    </g>
+    <rect x="385" y="70" width="176" height="28" fill="#555555"/>
+    <text x="392" y="92" fill="#ffffff" font-family="Arial, sans-serif" font-size="24" font-weight="800">13:43</text>
+    <text x="532" y="81" fill="#ffffff" font-family="Arial, sans-serif" font-size="8" font-weight="700">GOAL</text>
+    <text x="539" y="92" fill="#ffff55" font-family="Arial, sans-serif" font-size="10" font-weight="800">Z3</text>
+    <rect x="385" y="100" width="176" height="38" fill="#fff0aa"/>
+    <text x="392" y="130" fill="#000000" font-family="Arial, sans-serif" font-size="34" font-weight="900">135</text>
+    <text x="537" y="114" fill="#000000" font-family="Arial, sans-serif" font-size="10" font-weight="800">Z3</text>
+    <text x="531" y="130" fill="#000000" font-family="Arial, sans-serif" font-size="9" font-weight="800">BPM</text>
+    <g stroke="#555555" stroke-width="1">
+      <path d="M397 153h139M397 169h139M397 185h139M397 201h139"/>
+    </g>
+    <path d="M398 196l21-8 22 3 20-19 21 10 22-27 25 11" fill="none" stroke="#ffaa88" stroke-width="3"/>
+    <g font-family="Arial, sans-serif" font-size="8" font-weight="700" text-anchor="middle">
+      <rect x="539" y="145" width="16" height="14" fill="#555555"/><text x="547" y="155" fill="#ffffff">5</text>
+      <rect x="539" y="160" width="16" height="14" fill="#555555"/><text x="547" y="170" fill="#ffffff">4</text>
+      <rect x="539" y="175" width="16" height="14" fill="#ffff55"/><text x="547" y="185" fill="#000000">3</text>
+      <rect x="539" y="190" width="16" height="14" fill="#555555"/><text x="547" y="200" fill="#ffffff">2</text>
+      <rect x="539" y="205" width="16" height="14" fill="#555555"/><text x="547" y="215" fill="#ffffff">1</text>
+    </g>
+    <text x="393" y="236" fill="#ffffff" font-family="Arial, sans-serif" font-size="9">TIME 10:10</text>
+    <text x="487" y="236" fill="#ffffff" font-family="Arial, sans-serif" font-size="9">MAX 175</text>
+    <rect x="385" y="252" width="176" height="17" fill="#111111"/>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="540" y="68" width="145" height="176" rx="11" fill="#555555"/>
+    <rect x="548" y="76" width="129" height="147" fill="#000000"/>
+    <g fill="#777777"><rect x="582" y="81" width="8" height="5"/><rect x="593" y="81" width="8" height="5"/><rect x="604" y="81" width="8" height="5"/><rect x="615" y="81" width="8" height="5"/></g>
+    <rect x="548" y="94" width="129" height="23" fill="#555555"/>
+    <text x="553" y="112" fill="#ffffff" font-family="Arial, sans-serif" font-size="18" font-weight="800">13:35</text>
+    <text x="650" y="104" fill="#ffffff" font-family="Arial, sans-serif" font-size="7" font-weight="700">REST</text>
+    <text x="653" y="113" fill="#ffffff" font-family="Arial, sans-serif" font-size="7" font-weight="700">02:00</text>
+    <rect x="548" y="119" width="129" height="34" fill="#555555"/>
+    <text x="554" y="146" fill="#ffffff" font-family="Arial, sans-serif" font-size="29" font-weight="900">01:53</text>
+    <text x="649" y="130" fill="#ffffff" font-family="Arial, sans-serif" font-size="8" font-weight="700">LEFT</text>
+    <text x="554" y="176" fill="#ffffff" font-family="Arial, sans-serif" font-size="10" font-weight="800">REST TIMER</text>
+    <text x="554" y="202" fill="#ffffff" font-family="Arial, sans-serif" font-size="25" font-weight="900">148</text>
+    <text x="607" y="202" fill="#aaaaaa" font-family="Arial, sans-serif" font-size="8">BPM</text>
+    <rect x="548" y="223" width="129" height="13" fill="#111111"/>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="579" y="178" width="119" height="137" rx="9" fill="#555555"/>
+    <rect x="585" y="184" width="107" height="122" fill="#000000"/>
+    <rect x="585" y="196" width="107" height="20" fill="#555555"/>
+    <text x="589" y="211" fill="#ffffff" font-family="Arial, sans-serif" font-size="15" font-weight="800">13:25</text>
+    <text x="674" y="203" fill="#ffffff" font-family="Arial, sans-serif" font-size="7" font-weight="700">HRV</text>
+    <text x="673" y="212" fill="#ffffff" font-family="Arial, sans-serif" font-size="7" font-weight="700">PPG</text>
+    <rect x="585" y="219" width="107" height="28" fill="#555555"/>
+    <text x="591" y="241" fill="#ffffff" font-family="Arial, sans-serif" font-size="22" font-weight="900">--</text>
+    <text x="654" y="229" fill="#ffffff" font-family="Arial, sans-serif" font-size="7" font-weight="700">RMSSD</text>
+    <text x="592" y="265" fill="#ffffff" font-family="Arial, sans-serif" font-size="9" font-weight="800">NO RESULT</text>
+    <text x="592" y="280" fill="#aaaaaa" font-family="Arial, sans-serif" font-size="7">1 MIN · AT REST</text>
+    <text x="592" y="293" fill="#aaaaaa" font-family="Arial, sans-serif" font-size="7">PPG ESTIMATE</text>
+  </g>
+</svg>

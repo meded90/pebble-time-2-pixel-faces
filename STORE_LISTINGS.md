@@ -127,3 +127,36 @@ the bridge private or place it behind HTTPS and authentication.
 
 **Website and setup:**
 [github.com/meded90/pebble-time-2-pixel-faces](https://github.com/meded90/pebble-time-2-pixel-faces/tree/main/codex-weekly)
+
+## Wrist Agent
+
+**Short description**
+
+Speak to your private ChatGPT Workspace Agent and receive concise answers on Pebble Time 2.
+
+**Full description**
+
+Wrist Agent is a compact voice remote for a ChatGPT Workspace Agent you
+control. Use system Dictation, review the recognized command, and send it
+through your phone to your own HTTPS bridge. Concise answers and verified
+action summaries return to a scrollable, high-contrast Pebble Time 2 screen.
+
+The agent can use only the apps, connectors, and tools enabled by its owner or
+workspace administrator. Consequential actions can be proposed first and
+approved with a separate Select press. This is a self-hosted integration: the
+included bridge, a published Workspace Agent API channel, private MCP callback,
+connected phone, and eligible ChatGPT workspace are required.
+
+**Privacy**
+
+The configured Pebble/Core Devices dictation service processes audio. Wrist
+Agent receives only the accepted transcription and sends it to the user's own
+bridge and ChatGPT workspace. The phone stores a bridge URL, separate device
+token, and minimal current-request state. There is no developer-operated
+service, advertising, telemetry, or analytics.
+
+**Permissions:** configurable settings, system Dictation, and internet access
+through PebbleKit JS.
+
+**Website and setup:**
+[github.com/meded90/pebble-time-2-pixel-faces](https://github.com/meded90/pebble-time-2-pixel-faces/tree/main/wrist-agent)

@@ -1,5 +1,5 @@
 FACES := mosaic-grid flip-board info-tiles codex-weekly starry-digits meded90 zodiac-aquarius zodiac-gemini
-APPS := voice-drop
+APPS := voice-drop gym-zones wrist-agent
 PROJECTS := $(FACES) $(APPS)
 PEBBLE ?= pebble
 

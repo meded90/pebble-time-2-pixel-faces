@@ -16,6 +16,7 @@ enum IconKind: String, CaseIterable {
   case flipBoard = "flip-board"
   case mosaicGrid = "mosaic-grid"
   case codexWeekly = "codex-weekly"
+  case wristAgent = "wrist-agent"
 }
 
 let black = RGB(red: 0, green: 0, blue: 0)
@@ -313,6 +314,49 @@ func drawCodexWeekly(size: Int) -> PixelCanvas {
   return canvas
 }
 
+func drawWristAgent(size: Int) -> PixelCanvas {
+  var canvas = PixelCanvas(width: size, height: size, fill: navy)
+  let cyanAccent = cyan
+  let voiceAccent = lime
+
+  if size == 25 {
+    canvas.rect(x: 2, y: 2, width: 21, height: 21, color: black)
+    canvas.rect(x: 4, y: 3, width: 7, height: 2, color: cyanAccent)
+    canvas.rect(x: 3, y: 5, width: 2, height: 9, color: cyanAccent)
+    canvas.rect(x: 10, y: 5, width: 2, height: 9, color: cyanAccent)
+    canvas.rect(x: 5, y: 14, width: 5, height: 2, color: cyanAccent)
+    canvas.rect(x: 1, y: 11, width: 2, height: 4, color: white)
+    canvas.rect(x: 12, y: 11, width: 2, height: 4, color: white)
+    canvas.rect(x: 3, y: 16, width: 9, height: 2, color: white)
+    canvas.rect(x: 7, y: 18, width: 2, height: 3, color: white)
+    canvas.rect(x: 4, y: 21, width: 8, height: 2, color: white)
+
+    canvas.rect(x: 16, y: 5, width: 3, height: 3, color: voiceAccent)
+    canvas.rect(x: 20, y: 10, width: 3, height: 3, color: cyanAccent)
+    canvas.rect(x: 16, y: 15, width: 3, height: 3, color: voiceAccent)
+    canvas.rect(x: 14, y: 8, width: 2, height: 7, color: vividBlue)
+    canvas.rect(x: 16, y: 10, width: 4, height: 2, color: vividBlue)
+  } else {
+    canvas.rect(x: 2, y: 2, width: 28, height: 28, color: black)
+    canvas.rect(x: 6, y: 4, width: 9, height: 2, color: cyanAccent)
+    canvas.rect(x: 4, y: 6, width: 3, height: 11, color: cyanAccent)
+    canvas.rect(x: 14, y: 6, width: 3, height: 11, color: cyanAccent)
+    canvas.rect(x: 7, y: 17, width: 7, height: 2, color: cyanAccent)
+    canvas.rect(x: 2, y: 14, width: 2, height: 4, color: white)
+    canvas.rect(x: 17, y: 14, width: 2, height: 4, color: white)
+    canvas.rect(x: 4, y: 19, width: 13, height: 2, color: white)
+    canvas.rect(x: 9, y: 21, width: 3, height: 4, color: white)
+    canvas.rect(x: 6, y: 25, width: 9, height: 3, color: white)
+
+    canvas.rect(x: 22, y: 5, width: 4, height: 4, color: voiceAccent)
+    canvas.rect(x: 26, y: 13, width: 4, height: 4, color: cyanAccent)
+    canvas.rect(x: 22, y: 21, width: 4, height: 4, color: voiceAccent)
+    canvas.rect(x: 19, y: 9, width: 3, height: 12, color: vividBlue)
+    canvas.rect(x: 22, y: 13, width: 4, height: 3, color: vividBlue)
+  }
+  return canvas
+}
+
 func draw(_ kind: IconKind, size: Int) -> PixelCanvas {
   switch kind {
   case .flipBoard:
@@ -321,6 +365,8 @@ func draw(_ kind: IconKind, size: Int) -> PixelCanvas {
     return drawMosaicGrid(size: size)
   case .codexWeekly:
     return drawCodexWeekly(size: size)
+  case .wristAgent:
+    return drawWristAgent(size: size)
   }
 }
 
@@ -335,6 +381,47 @@ func scaled(_ source: PixelCanvas, to outputSize: Int) -> PixelCanvas {
     }
   }
   return output
+}
+
+func drawWristAgentBanner() -> PixelCanvas {
+  let glyphs: [Character: [String]] = [
+    "W": ["10001", "10001", "10001", "10101", "10101", "11011", "10001"],
+    "R": ["11110", "10001", "10001", "11110", "10100", "10010", "10001"],
+    "I": ["11111", "00100", "00100", "00100", "00100", "00100", "11111"],
+    "S": ["01111", "10000", "10000", "01110", "00001", "00001", "11110"],
+    "T": ["11111", "00100", "00100", "00100", "00100", "00100", "00100"],
+    "A": ["01110", "10001", "10001", "11111", "10001", "10001", "10001"],
+    "G": ["01110", "10001", "10000", "10111", "10001", "10001", "01110"],
+    "E": ["11111", "10000", "10000", "11110", "10000", "10000", "11111"],
+    "N": ["10001", "11001", "11001", "10101", "10011", "10011", "10001"],
+  ]
+
+  var canvas = PixelCanvas(width: 720, height: 320, fill: navy)
+  canvas.rect(x: 24, y: 24, width: 672, height: 272, color: black)
+  let icon = scaled(drawWristAgent(size: 32), to: 224)
+  for y in 0..<icon.height {
+    for x in 0..<icon.width {
+      canvas.set(48 + x, 48 + y, icon.pixels[y * icon.width + x])
+    }
+  }
+
+  for (row, word) in ["WRIST", "AGENT"].enumerated() {
+    var x = 310
+    for character in word {
+      canvas.glyph(
+        glyphs[character]!,
+        x: x,
+        y: 58 + row * 104,
+        color: row == 0 ? white : cyan,
+        scaleX: 10,
+        scaleY: 10
+      )
+      x += 66
+    }
+  }
+  canvas.rect(x: 310, y: 255, width: 300, height: 8, color: vividBlue)
+  canvas.rect(x: 610, y: 255, width: 44, height: 8, color: lime)
+  return canvas
 }
 
 func writePNG(_ canvas: PixelCanvas, to url: URL) throws {
@@ -405,3 +492,9 @@ for kind in IconKind.allCases {
   try writePNG(menuIcon, to: menuOutput)
   print(menuOutput.path)
 }
+
+let bannerDirectory = root.appendingPathComponent("assets/banners", isDirectory: true)
+try FileManager.default.createDirectory(at: bannerDirectory, withIntermediateDirectories: true)
+let wristAgentBanner = bannerDirectory.appendingPathComponent("wrist-agent-banner-720x320.png")
+try writePNG(drawWristAgentBanner(), to: wristAgentBanner)
+print(wristAgentBanner.path)

@@ -1,0 +1,59 @@
+{
+  "name": "wrist-agent",
+  "author": "Kirill Baldin",
+  "version": "1.0.0",
+  "description": "Voice front end for a ChatGPT Workspace Agent on Pebble Time 2",
+  "keywords": [
+    "pebble-app",
+    "voice",
+    "assistant",
+    "chatgpt",
+    "workspace-agent",
+    "emery"
+  ],
+  "private": true,
+  "scripts": {
+    "test": "node tests/test_package.js && node tests/test_pkjs.js"
+  },
+  "dependencies": {
+    "@rebble/clay": "^1.0.10"
+  },
+  "pebble": {
+    "displayName": "Wrist Agent",
+    "uuid": "8c69a4e9-fe5d-4480-a2a2-db1e5b7a5af8",
+    "sdkVersion": "3",
+    "enableMultiJS": true,
+    "targetPlatforms": [
+      "emery"
+    ],
+    "watchapp": {
+      "watchface": false
+    },
+    "capabilities": [
+      "configurable"
+    ],
+    "messageKeys": [
+      "TRANSCRIPT",
+      "COMMAND_NONCE",
+      "REFRESH_REQUEST",
+      "CONFIRM_REQUEST",
+      "AGENT_STATE",
+      "RESULT_TEXT",
+      "ACTION_SUMMARY",
+      "ERROR_CODE",
+      "CAN_CONFIRM",
+      "RETRY_SAME_REQUEST",
+      "VIBRATE_ON_RESULT"
+    ],
+    "resources": {
+      "media": [
+        {
+          "type": "png",
+          "name": "IMAGE_MENU_ICON",
+          "file": "images/wrist-agent-menu-icon.png",
+          "menuIcon": true
+        }
+      ]
+    }
+  }
+}

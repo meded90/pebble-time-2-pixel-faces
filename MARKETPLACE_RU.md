@@ -3,6 +3,11 @@
 Инструкция актуализирована для Pebble SDK 4.17 и Pebble Time 2 (`emery`) на
 29 июля 2026 года.
 
+Для self-hosted watchapp Wrist Agent используйте более строгий отдельный
+checklist: [`wrist-agent/PUBLISHING.md`](wrist-agent/PUBLISHING.md). Он включает
+PBW, иконки, screenshots, private bridge, MCP callback, live Workspace Agent и
+реальный тест подтверждения календарного действия.
+
 ## 1. Подготовить окружение
 
 На macOS:
@@ -140,4 +145,3 @@ Marketplace-модель монетизации. Не обещайте подд�
 - [Pebble CLI](https://developer.repebble.com/guides/tools-and-resources/pebble-tool/)
 - [Погода через Open‑Meteo](https://developer.repebble.com/tutorials/watchface-tutorial/part4/)
 - [Pebble Health](https://developer.repebble.com/guides/events-and-services/health/)
-

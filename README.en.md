@@ -6,9 +6,12 @@ Eight independent native watchfaces for Pebble Time 2 (`emery`, 200×228,
 64 colors). Each directory is a standalone Pebble project with its own UUID
 and `.pbw` package.
 
-The repository also contains `voice-drop`, a separate microphone watchapp.
-Start with [its documentation](voice-drop/README.md); it is not a watchface and
-is not included in the gallery below.
+The repository also contains three standalone watchapps: [Gym Zones](gym-zones/)
+for strength workouts, heart-rate zones, rest timing, and one-minute PPG-HRV;
+[Wrist Agent](wrist-agent/), a voice front end for a ChatGPT Workspace Agent
+with a private bridge and MCP callback; and `voice-drop` for microphone
+recording. Start with each app's documentation; they are not watchfaces and are
+not included in the gallery below.
 
 ## Native 200×228 previews
 
@@ -48,8 +51,27 @@ make build
 ```
 
 Every project writes its package to `<project>/build/*.pbw`. Verified release
-copies are stored in `dist/`. Use `make apps` for separate watchapps;
-`voice-drop` requires the dedicated patched SDK described in its README.
+copies are stored in `dist/`. Build Gym Zones on its own with SDK 4.33.1:
+
+```bash
+make gym-zones PEBBLE="$PWD/.venv/bin/pebble"
+```
+
+Wrist Agent uses the same public SDK and has a separately tested bridge:
+
+```bash
+make wrist-agent PEBBLE="$PWD/.venv/bin/pebble"
+npm --prefix wrist-agent-server test
+```
+
+The aggregate `make apps` target also builds `voice-drop`, which requires the
+different patched SDK described in its README; do not use that aggregate target
+as a Gym Zones- or Wrist Agent-only check.
+
+The verified package is `dist/gym-zones.pbw`. See
+[`gym-zones/README.en.md`](gym-zones/README.en.md) and
+[`gym-zones/VALIDATION.md`](gym-zones/VALIDATION.md) for controls, screenshots,
+and the exact hardware-validation boundary.
 
 ## Run one watchface in the emulator
 

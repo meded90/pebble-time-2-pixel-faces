@@ -1,0 +1,57 @@
+{
+  "name": "gym-zones",
+  "author": "Kirill Baldin",
+  "version": "1.0.0",
+  "keywords": [
+    "pebble-app",
+    "fitness",
+    "heart-rate",
+    "hrv",
+    "emery"
+  ],
+  "private": true,
+  "dependencies": {
+    "@rebble/clay": "^1.0.10"
+  },
+  "pebble": {
+    "displayName": "Gym Zones",
+    "uuid": "7ce2f849-b57a-4e91-9d52-b5c87bf5035c",
+    "sdkVersion": "3",
+    "enableMultiJS": true,
+    "targetPlatforms": [
+      "emery"
+    ],
+    "watchapp": {
+      "watchface": false
+    },
+    "capabilities": [
+      "configurable",
+      "health"
+    ],
+    "messageKeys": [
+      "ZONE_MODE",
+      "MAX_HR",
+      "AGE",
+      "AGE_FORMULA",
+      "ZONE_1_MIN",
+      "ZONE_2_MIN",
+      "ZONE_3_MIN",
+      "ZONE_4_MIN",
+      "ZONE_5_MIN",
+      "TARGET_ZONE",
+      "ZONE_VIBES",
+      "VIBRATIONS_ENABLED",
+      "REST_PRESET"
+    ],
+    "resources": {
+      "media": [
+        {
+          "type": "png",
+          "name": "IMAGE_MENU_ICON",
+          "file": "images/gym-zones-menu-icon.png",
+          "menuIcon": true
+        }
+      ]
+    }
+  }
+}

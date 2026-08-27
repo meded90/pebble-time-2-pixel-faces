@@ -5,3 +5,9 @@
 .venv/
 .idea/
 **/node_modules/
+gym-zones/tests/test_fitness_math
+gym-zones/tests/test_fitness_math.dSYM/
+gym-zones/tests/test_workout_logic
+gym-zones/tests/test_workout_logic.dSYM/
+wrist-agent-server/.env
+wrist-agent-server/data/
