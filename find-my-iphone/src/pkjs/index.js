@@ -9,6 +9,8 @@ var SESSION_KEY = 'find_my_iphone_session_v1';
 var PENDING_KEY = 'find_my_iphone_pending_auth_v1';
 var DEVICES_KEY = 'find_my_iphone_devices_v1';
 var SETTINGS_KEY = 'find_my_iphone_preferences_v1';
+var CONFIG_STAGE_KEY = 'find_my_iphone_config_stage_v1';
+var CONFIG_ERROR_KEY = 'find_my_iphone_config_error_v1';
 var COOLDOWN_MS = 10000;
 
 var STATE = {
@@ -28,9 +30,10 @@ var session = readJson(SESSION_KEY);
 var pendingAuth = readJson(PENDING_KEY);
 var devices = readJson(DEVICES_KEY) || [];
 var preferences = readJson(SETTINGS_KEY) || {};
+var configStage = readJson(CONFIG_STAGE_KEY) || '';
 var inFlight = false;
 var lastPlayAt = 0;
-var lastError = '';
+var lastError = readJson(CONFIG_ERROR_KEY) || '';
 
 function readJson(key) {
   try { return JSON.parse(localStorage.getItem(key)); } catch (error) { localStorage.removeItem(key); return null; }
@@ -44,6 +47,20 @@ function writeJson(key, value) {
 function safeError(error) {
   var code = String(error && error.message || error || 'UNKNOWN');
   return code.replace(/[^A-Z0-9_ -]/gi, '').slice(0, 72);
+}
+
+function validConfigStage(stage) {
+  return ['login', 'two-factor', 'devices', 'connected'].indexOf(stage) !== -1;
+}
+
+function setConfigStage(stage) {
+  configStage = validConfigStage(stage) ? stage : '';
+  writeJson(CONFIG_STAGE_KEY, configStage || null);
+}
+
+function setConfigError(error) {
+  lastError = error ? safeError(error) : '';
+  writeJson(CONFIG_ERROR_KEY, lastError || null);
 }
 
 function selectedDevice() {
@@ -85,7 +102,7 @@ function persistReadySession(nextSession, nextDevices) {
 
 function errorState(error, requestId) {
   var code = safeError(error);
-  lastError = code;
+  setConfigError(code);
   if (code.indexOf('AUTH_EXPIRED') === 0) {
     sendState(STATE.AUTH_EXPIRED, { errorCode: 401, requestId: requestId });
   } else if (code.indexOf('RATE_LIMITED') === 0) {
@@ -171,7 +188,11 @@ function selectByIndex(index) {
 
 function configModel(forceStage) {
   var selected = selectedDevice();
-  var stage = forceStage || (pendingAuth ? 'two-factor' : (!session ? 'login' : (!devices.length ? 'devices' : 'connected')));
+  var derivedStage = pendingAuth ? 'two-factor' : (!session ? 'login' : (!devices.length ? 'devices' : 'connected'));
+  var stage = forceStage || configStage || derivedStage;
+  if (!validConfigStage(stage) || (stage === 'two-factor' && !pendingAuth) ||
+      ((stage === 'devices' || stage === 'connected') && !session)) stage = derivedStage;
+  if (stage === 'connected' && !devices.length) stage = 'devices';
   return {
     stage: stage,
     error: lastError,
@@ -187,17 +208,14 @@ function openConfiguration(forceStage) {
   Pebble.openURL(configPage.generateUrl(configModel(forceStage)));
 }
 
-function reopenConfiguration(stage) {
-  setTimeout(function() { openConfiguration(stage); }, 250);
-}
-
 function clearSession() {
   var locale = preferences.locale || '';
   session = null;
   pendingAuth = null;
   devices = [];
   preferences = locale ? { locale: locale } : {};
-  lastError = '';
+  setConfigStage('login');
+  setConfigError('');
   writeJson(SESSION_KEY, null);
   writeJson(PENDING_KEY, null);
   writeJson(DEVICES_KEY, null);
@@ -219,7 +237,6 @@ Pebble.addEventListener('ready', function() {
 });
 
 Pebble.addEventListener('showConfiguration', function() {
-  lastError = '';
   openConfiguration();
 });
 
@@ -230,26 +247,27 @@ Pebble.addEventListener('webviewclosed', function(event) {
     preferences.locale = String(response.locale).slice(0, 16);
     writeJson(SETTINGS_KEY, preferences);
   }
-  lastError = '';
+  setConfigError('');
   if (response.action === 'logout') {
     clearSession();
-    reopenConfiguration('login');
     return;
   }
   if (response.action === 'devices') {
-    reopenConfiguration('devices');
+    setConfigStage('devices');
     return;
   }
   if (response.action === 'refresh') {
-    refreshStatus().then(function() { reopenConfiguration('devices'); });
+    setConfigStage('devices');
+    refreshStatus();
     return;
   }
   if (response.action === 'select') {
     selectById(String(response.deviceId || ''));
-    reopenConfiguration('connected');
+    setConfigStage('connected');
     return;
   }
   if (response.action === 'login') {
+    setConfigStage('login');
     var password = String(response.password || '');
     response.password = '';
     sendState(STATE.REQUESTING);
@@ -258,22 +276,24 @@ Pebble.addEventListener('webviewclosed', function(event) {
       if (result.needs2FA) {
         pendingAuth = result.session;
         writeJson(PENDING_KEY, pendingAuth);
+        setConfigStage('two-factor');
         sendState(STATE.AUTH_REQUIRED);
-        reopenConfiguration('two-factor');
         return;
       }
       session = result.session;
       writeJson(SESSION_KEY, session);
-      return refreshStatus().then(function() { reopenConfiguration('devices'); });
+      return refreshStatus().then(function() { setConfigStage('devices'); });
     }).catch(function(error) {
       password = '';
-      lastError = safeError(error);
+      setConfigError(error);
+      console.log('Find My login failed: ' + lastError);
+      setConfigStage('login');
       sendState(STATE.AUTH_REQUIRED);
-      reopenConfiguration('login');
     });
     return;
   }
   if (response.action === 'verify') {
+    setConfigStage('two-factor');
     var code = String(response.code || '');
     response.code = '';
     sendState(STATE.REQUESTING);
@@ -283,12 +303,13 @@ Pebble.addEventListener('webviewclosed', function(event) {
       pendingAuth = null;
       writeJson(SESSION_KEY, session);
       writeJson(PENDING_KEY, null);
-      return refreshStatus().then(function() { reopenConfiguration('devices'); });
+      return refreshStatus().then(function() { setConfigStage('devices'); });
     }).catch(function(error) {
       code = '';
-      lastError = safeError(error);
+      setConfigError(error);
+      console.log('Find My 2FA failed: ' + lastError);
+      setConfigStage('two-factor');
       sendState(STATE.AUTH_REQUIRED);
-      reopenConfiguration('two-factor');
     });
   }
 });

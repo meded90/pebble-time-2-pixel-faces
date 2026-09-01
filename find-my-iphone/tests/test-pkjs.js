@@ -61,6 +61,7 @@ async function main() {
   assert(loginHtml.indexOf('value="test@example.com"') !== -1);
   assert(loginHtml.indexOf('temporary-password') === -1);
   assert(loginHtml.indexOf('пароль и код 2FA') !== -1);
+  assert(loginHtml.indexOf('Откройте их снова, чтобы продолжить') !== -1);
   assert.strictEqual(configPage.languageFor('de_DE'), 'de');
   assert.strictEqual(configPage.languageFor('ja_JP'), 'en');
   assert(decodeURIComponent(configPage.generateUrl({ stage: 'login', locale: 'de_DE' }).split(',')[1]).indexOf('Apple Account verbinden') !== -1);
@@ -116,17 +117,79 @@ async function main() {
     dsInfo: { dsid: '12345', countryCode: 'AE' },
     webservices: { findme: { url: 'https://fmip.example.com:443' } }
   });
-  await Promise.resolve();
-  await Promise.resolve();
+  await new Promise(function(resolve) { setImmediate(resolve); });
   assert.strictEqual(requests.length, 5);
   assert(requests[4].url.indexOf('/fmipservice/client/web/playSound?') !== -1);
   respond(requests[4], 200, { content: [{ snd: { statusCode: '200' } }] });
   assert.strictEqual((await retryPromise).accepted, true);
 
+  var loginPromise = apple.startLogin('test@example.com', 'test-only-password');
+  assert.strictEqual(requests.length, 6);
+  assert(requests[5].url.indexOf('/authorize/signin?') !== -1);
+  respond(requests[5], 200, null, {
+    'scnt': 'authorize-scnt',
+    'X-Apple-ID-Session-Id': 'authorize-session',
+    'Set-Cookie': 'authorize=cookie; Path=/'
+  });
+  await Promise.resolve();
+  assert.strictEqual(requests.length, 7);
+  assert(requests[6].url.indexOf('/signin/init') !== -1);
+  assert.strictEqual(requests[6].headers.scnt, 'authorize-scnt');
+  assert.strictEqual(requests[6].headers['X-Apple-ID-Session-Id'], 'authorize-session');
+  respond(requests[6], 200, {
+    salt: crypto.bytesToBase64(salt),
+    b: crypto.bytesToBase64(serverPublic),
+    iteration: 1000,
+    protocol: 's2k',
+    c: 'challenge'
+  }, {
+    'scnt': 'init-scnt',
+    'X-Apple-ID-Session-Id': 'init-session',
+    'X-Apple-Auth-Attributes': 'init-attributes'
+  });
+  await new Promise(function(resolve) { setImmediate(resolve); });
+  assert.strictEqual(requests.length, 8);
+  assert(requests[7].url.indexOf('/signin/complete?') !== -1);
+  assert.strictEqual(requests[7].headers.scnt, 'init-scnt');
+  assert.strictEqual(requests[7].headers['X-Apple-ID-Session-Id'], 'init-session');
+  assert.strictEqual(requests[7].headers['X-Apple-Auth-Attributes'], 'init-attributes');
+  respond(requests[7], 409, { authType: 'hsa2' }, {
+    'scnt': 'two-factor-scnt',
+    'X-Apple-ID-Session-Id': 'two-factor-session'
+  });
+  var loginResult = await loginPromise;
+  assert.strictEqual(loginResult.needs2FA, true);
+  assert.strictEqual(loginResult.session.scnt, 'two-factor-scnt');
+  assert.strictEqual(loginResult.session.sessionId, 'two-factor-session');
+
   Object.keys(storage).forEach(function(key) {
     assert(storage[key].indexOf('correct horse battery staple') === -1, 'password leaked into ' + key);
     assert(storage[key].indexOf('123456') === -1, '2FA code leaked into ' + key);
+    assert(storage[key].indexOf('test-only-password') === -1, 'test password leaked into ' + key);
   });
+
+  storage.find_my_iphone_session_v1 = JSON.stringify(session);
+  storage.find_my_iphone_devices_v1 = JSON.stringify([{ id: 'iphone-id', name: 'Main iPhone' }]);
+  storage.find_my_iphone_preferences_v1 = JSON.stringify({ selectedDeviceId: 'iphone-id', locale: 'en_US' });
+  storage.find_my_iphone_config_stage_v1 = JSON.stringify('devices');
+  delete require.cache[require.resolve(path.join(project, 'src', 'pkjs', 'index.js'))];
+  require(path.join(project, 'src', 'pkjs', 'index.js'));
+  var beforeOpen = openedUrls.length;
+  listeners.showConfiguration();
+  assert.strictEqual(openedUrls.length, beforeOpen + 1);
+  var resumedDevicesHtml = decodeURIComponent(openedUrls[openedUrls.length - 1].split(',')[1]);
+  assert(resumedDevicesHtml.indexOf('Which iPhone should ring?') !== -1,
+    'manual settings reopen must resume the saved device-selection step');
+
+  var beforeClose = openedUrls.length;
+  listeners.webviewclosed({ response: encodeURIComponent(JSON.stringify({ action: 'select', deviceId: 'iphone-id' })) });
+  assert.strictEqual(openedUrls.length, beforeClose,
+    'submitting a settings action must not attempt to reopen the WebView automatically');
+  assert.strictEqual(JSON.parse(storage.find_my_iphone_config_stage_v1), 'connected');
+  listeners.showConfiguration();
+  var resumedConnectedHtml = decodeURIComponent(openedUrls[openedUrls.length - 1].split(',')[1]);
+  assert(resumedConnectedHtml.indexOf('Ready to find') !== -1,
+    'the next manual settings reopen must show the connected step');
 
   console.log('PebbleKit JS auth, SRP, storage and Find My request tests passed');
 }

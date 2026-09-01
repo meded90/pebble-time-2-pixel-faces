@@ -52,5 +52,9 @@ assert(pkjsSource.indexOf('response.password = \'\'') !== -1, 'transient passwor
 assert(pkjsSource.indexOf('response.code = \'\'') !== -1, 'transient 2FA code must be cleared');
 assert(pkjsSource.indexOf('preferences.lastAcceptedRequestId') !== -1,
   'accepted playSound request IDs must survive duplicate AppMessages');
+assert(pkjsSource.indexOf('find_my_iphone_config_stage_v1') !== -1,
+  'the next configuration step must survive WebView closure and PebbleKit JS restarts');
+assert(pkjsSource.indexOf('reopenConfiguration') === -1,
+  'Pebble settings must not rely on reopening a WebView from webviewclosed');
 
 console.log('package, resources and native contract tests passed');

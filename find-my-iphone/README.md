@@ -138,4 +138,6 @@ between Pebble Core and the watch; internet access on the iPhone is required.
 `npm test`, Emery PBW compilation, and the `AUTH_REQUIRED` and `READY` emulator
 states are verified. Real Apple sign-in, real 2FA, and a physical phone sound
 request have intentionally not been performed because they require user
-credentials, a physical iPhone, and a physical Pebble Time 2.
+credentials, a physical iPhone, and a physical Pebble Time 2. Do not enter a
+real Apple password in the public browser QEMU: its PebbleKit JS CORS fallback
+can route requests through the emulator author's external proxy.

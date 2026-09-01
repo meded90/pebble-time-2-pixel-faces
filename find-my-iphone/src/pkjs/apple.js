@@ -172,7 +172,13 @@ function withHeaderSession(session, headers) {
 function appleError(response) {
   var body = response && response.body || {};
   var errors = Array.isArray(body.serviceErrors) ? body.serviceErrors : [];
-  return String((errors[0] && (errors[0].message || errors[0].errorMessage)) || body.errorMessage || body.reason || body.error || ('HTTP_' + (response ? response.status : 0)));
+  var first = errors[0] || {};
+  var status = response ? response.status : 0;
+  var code = first.code || first.errorCode || body.errorCode || body.code || '';
+  var message = first.message || first.errorMessage || body.errorMessage || body.reason || body.error || '';
+  return ['HTTP', status, code, message].filter(function(value) {
+    return value !== '' && value !== null && value !== undefined;
+  }).join('_');
 }
 
 function accountLogin(session) {
@@ -217,6 +223,8 @@ function startLogin(appleId, password, previousSession) {
     response_mode: 'web_message', state: clientId, authVersion: 'latest'
   }, headers).then(function(authorizeResponse) {
     if (authorizeResponse.status !== 200) throw new Error('AUTH_BOOTSTRAP_' + appleError(authorizeResponse));
+    session = withHeaderSession(session, authorizeResponse.headers);
+    headers = authHeaders(clientId, session);
     srpClient = srp.createSrpClient(srpEntropy(authorizeResponse));
     return requestJson('POST', AUTH_ROOT + '/signin/init', {}, headers, {
       a: srpClient.publicA,
@@ -225,6 +233,8 @@ function startLogin(appleId, password, previousSession) {
     });
   }).then(function(initResponse) {
     if (initResponse.status !== 200 || !initResponse.body) throw new Error('SRP_INIT_' + appleError(initResponse));
+    session = withHeaderSession(session, initResponse.headers);
+    headers = authHeaders(clientId, session);
     var proof = srp.createSrpProof(cleanAppleId, password, initResponse.body, srpClient.privateBytes);
     return requestJson('POST', AUTH_ROOT + '/signin/complete', { isRememberMeEnabled: 'true' }, headers, {
       accountName: cleanAppleId,

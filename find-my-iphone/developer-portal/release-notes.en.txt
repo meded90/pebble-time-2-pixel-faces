@@ -1,2 +1,4 @@
 - Fixed the sofa scene on Pebble Time 2 so the cushion and iPhone are proportionally scaled to the native 145x99 foreground layer instead of being cropped on the physical display.
 - Preserved the complete composition and transparent safety padding after scaling.
+- Settings now resume the saved login, 2FA, device-selection, or connected step when reopened. The app no longer relies on an automatic WebView reopen that could fail on iPhone, and the localized page explains Pebble's close-and-reopen flow.
+- Fixed Apple SRP sign-in so updated challenge and session headers are carried across authorize, initialization, and completion requests; failures now report a safe HTTP/error code without credentials or tokens.
