@@ -4,56 +4,56 @@ var COPY = {
   en: {
     subtitle: 'Pebble companion settings', stored: 'Stored on iPhone:', storedValue: 'Apple session tokens, cookies, and the selected iPhone ID.', notStored: 'Not stored:', notStoredValue: 'password or 2FA code.',
     step1: 'STEP 1 OF 3', connect: 'Connect Apple Account', loginInfo: 'Sign-in goes directly to Apple servers. This unofficial reverse API may change.', account: 'Apple Account', password: 'Password', continueLabel: 'Continue',
-    step2: 'STEP 2 OF 3', verification: 'Verification code', codeInfo: 'Enter the six-digit code shown on a trusted Apple device.', code: '2FA code', verify: 'Verify code', restart: 'Start again',
+    step2: 'STEP 2 OF 3', verification: 'Verification code', codeInfo: 'Apple was asked to show a six-digit code on your trusted devices.', code: '2FA code', verify: 'Verify code', resend: 'Send code again', restart: 'Start again',
     step3: 'STEP 3 OF 3', which: 'Which iPhone should ring?', deviceInfo: 'Use Up and Down on the watch to switch devices.', save: 'Save', refresh: 'Refresh list',
     ready: 'Ready to find', selected: '{device} is selected. Hold Select on Pebble for 0.65 seconds.', session: 'Apple session', active: 'Active', notSaved: 'Not saved', change: 'Change device', logout: 'Sign out and delete session', reopenInfo: 'Pebble closes Settings after each action. Open Settings again to continue.'
   },
   ru: {
     subtitle: 'Настройки приложения Pebble', stored: 'Хранится на iPhone:', storedValue: 'токены Apple-сессии, cookies и ID выбранного iPhone.', notStored: 'Не хранится:', notStoredValue: 'пароль и код 2FA.',
     step1: 'ШАГ 1 ИЗ 3', connect: 'Подключить Apple Account', loginInfo: 'Вход выполняется напрямую через серверы Apple. Это неофициальный reverse API, который Apple может изменить.', account: 'Apple Account', password: 'Пароль', continueLabel: 'Продолжить',
-    step2: 'ШАГ 2 ИЗ 3', verification: 'Код проверки', codeInfo: 'Введите шестизначный код с доверенного устройства Apple.', code: 'Код 2FA', verify: 'Проверить код', restart: 'Начать заново',
+    step2: 'ШАГ 2 ИЗ 3', verification: 'Код проверки', codeInfo: 'Apple отправила запрос на показ шестизначного кода на доверенных устройствах.', code: 'Код 2FA', verify: 'Проверить код', resend: 'Отправить код ещё раз', restart: 'Начать заново',
     step3: 'ШАГ 3 ИЗ 3', which: 'Какой iPhone звонит?', deviceInfo: 'Up и Down на часах переключают устройства.', save: 'Сохранить', refresh: 'Обновить список',
     ready: 'Готово к поиску', selected: 'Выбран {device}. На Pebble удерживайте Select 0,65 секунды.', session: 'Сессия Apple', active: 'Активна', notSaved: 'Не сохранён', change: 'Сменить устройство', logout: 'Выйти и удалить сессию', reopenInfo: 'После каждого действия Pebble закрывает настройки. Откройте их снова, чтобы продолжить.'
   },
   uk: {
     subtitle: 'Налаштування Pebble', stored: 'Зберігається на iPhone:', storedValue: 'токени сесії Apple, cookies та ID вибраного iPhone.', notStored: 'Не зберігається:', notStoredValue: 'пароль і код 2FA.',
     step1: 'КРОК 1 З 3', connect: 'Підключити Apple Account', loginInfo: 'Вхід виконується безпосередньо через сервери Apple. Цей неофіційний reverse API може змінитися.', password: 'Пароль', continueLabel: 'Продовжити',
-    step2: 'КРОК 2 З 3', verification: 'Код перевірки', codeInfo: 'Введіть шестизначний код із довіреного пристрою Apple.', code: 'Код 2FA', verify: 'Перевірити код', restart: 'Почати знову',
+    step2: 'КРОК 2 З 3', verification: 'Код перевірки', codeInfo: 'Apple надіслала запит показати шестизначний код на довірених пристроях.', code: 'Код 2FA', verify: 'Перевірити код', resend: 'Надіслати код ще раз', restart: 'Почати знову',
     step3: 'КРОК 3 З 3', which: 'Який iPhone має дзвонити?', deviceInfo: 'Up і Down на годиннику перемикають пристрої.', save: 'Зберегти', refresh: 'Оновити список',
     ready: 'Готово до пошуку', selected: 'Вибрано {device}. Утримуйте Select на Pebble 0,65 секунди.', session: 'Сесія Apple', active: 'Активна', notSaved: 'Не збережено', change: 'Змінити пристрій', logout: 'Вийти й видалити сесію', reopenInfo: 'Після кожної дії Pebble закриває налаштування. Відкрийте їх знову, щоб продовжити.'
   },
   de: {
     subtitle: 'Pebble-Begleiteinstellungen', stored: 'Auf dem iPhone gespeichert:', storedValue: 'Apple-Sitzungstoken, Cookies und die gewählte iPhone-ID.', notStored: 'Nicht gespeichert:', notStoredValue: 'Passwort oder 2FA-Code.',
     step1: 'SCHRITT 1 VON 3', connect: 'Apple Account verbinden', loginInfo: 'Die Anmeldung erfolgt direkt bei Apple. Diese inoffizielle Reverse API kann sich ändern.', password: 'Passwort', continueLabel: 'Weiter',
-    step2: 'SCHRITT 2 VON 3', verification: 'Bestätigungscode', codeInfo: 'Gib den sechsstelligen Code eines vertrauenswürdigen Apple-Geräts ein.', code: '2FA-Code', verify: 'Code prüfen', restart: 'Neu beginnen',
+    step2: 'SCHRITT 2 VON 3', verification: 'Bestätigungscode', codeInfo: 'Apple wurde gebeten, auf deinen vertrauenswürdigen Geräten einen sechsstelligen Code anzuzeigen.', code: '2FA-Code', verify: 'Code prüfen', resend: 'Code erneut senden', restart: 'Neu beginnen',
     step3: 'SCHRITT 3 VON 3', which: 'Welches iPhone soll klingeln?', deviceInfo: 'Mit Up und Down auf der Uhr wechselst du das Gerät.', save: 'Speichern', refresh: 'Liste aktualisieren',
     ready: 'Bereit zum Finden', selected: '{device} ist ausgewählt. Halte Select auf Pebble 0,65 Sekunden.', session: 'Apple-Sitzung', active: 'Aktiv', notSaved: 'Nicht gespeichert', change: 'Gerät wechseln', logout: 'Abmelden und Sitzung löschen', reopenInfo: 'Pebble schließt die Einstellungen nach jeder Aktion. Öffne sie erneut, um fortzufahren.'
   },
   es: {
     subtitle: 'Ajustes complementarios de Pebble', stored: 'Guardado en el iPhone:', storedValue: 'tokens de sesión de Apple, cookies e ID del iPhone elegido.', notStored: 'No se guarda:', notStoredValue: 'contraseña ni código 2FA.',
     step1: 'PASO 1 DE 3', connect: 'Conectar Apple Account', loginInfo: 'El inicio de sesión va directamente a Apple. Esta API inversa no oficial puede cambiar.', password: 'Contraseña', continueLabel: 'Continuar',
-    step2: 'PASO 2 DE 3', verification: 'Código de verificación', codeInfo: 'Introduce el código de seis dígitos de un dispositivo Apple de confianza.', code: 'Código 2FA', verify: 'Verificar código', restart: 'Empezar de nuevo',
+    step2: 'PASO 2 DE 3', verification: 'Código de verificación', codeInfo: 'Se pidió a Apple que muestre un código de seis dígitos en tus dispositivos de confianza.', code: 'Código 2FA', verify: 'Verificar código', resend: 'Enviar código otra vez', restart: 'Empezar de nuevo',
     step3: 'PASO 3 DE 3', which: '¿Qué iPhone debe sonar?', deviceInfo: 'Usa Up y Down en el reloj para cambiar de dispositivo.', save: 'Guardar', refresh: 'Actualizar lista',
     ready: 'Listo para buscar', selected: '{device} está seleccionado. Mantén Select en Pebble durante 0,65 segundos.', session: 'Sesión de Apple', active: 'Activa', notSaved: 'No guardada', change: 'Cambiar dispositivo', logout: 'Cerrar sesión y eliminarla', reopenInfo: 'Pebble cierra los ajustes después de cada acción. Ábrelos de nuevo para continuar.'
   },
   fr: {
     subtitle: 'Réglages compagnon Pebble', stored: 'Stocké sur l’iPhone :', storedValue: 'jetons de session Apple, cookies et ID de l’iPhone choisi.', notStored: 'Non stocké :', notStoredValue: 'mot de passe ou code 2FA.',
     step1: 'ÉTAPE 1 SUR 3', connect: 'Connecter Apple Account', loginInfo: 'La connexion passe directement par Apple. Cette API inverse non officielle peut changer.', password: 'Mot de passe', continueLabel: 'Continuer',
-    step2: 'ÉTAPE 2 SUR 3', verification: 'Code de vérification', codeInfo: 'Saisissez le code à six chiffres d’un appareil Apple de confiance.', code: 'Code 2FA', verify: 'Vérifier le code', restart: 'Recommencer',
+    step2: 'ÉTAPE 2 SUR 3', verification: 'Code de vérification', codeInfo: 'Apple a été invité à afficher un code à six chiffres sur vos appareils de confiance.', code: 'Code 2FA', verify: 'Vérifier le code', resend: 'Renvoyer le code', restart: 'Recommencer',
     step3: 'ÉTAPE 3 SUR 3', which: 'Quel iPhone doit sonner ?', deviceInfo: 'Utilisez Up et Down sur la montre pour changer d’appareil.', save: 'Enregistrer', refresh: 'Actualiser la liste',
     ready: 'Prêt à localiser', selected: '{device} est sélectionné. Maintenez Select sur Pebble pendant 0,65 seconde.', session: 'Session Apple', active: 'Active', notSaved: 'Non enregistré', change: 'Changer d’appareil', logout: 'Se déconnecter et supprimer la session', reopenInfo: 'Pebble ferme les réglages après chaque action. Rouvrez-les pour continuer.'
   },
   it: {
     subtitle: 'Impostazioni companion Pebble', stored: 'Memorizzato su iPhone:', storedValue: 'token della sessione Apple, cookie e ID dell’iPhone scelto.', notStored: 'Non memorizzato:', notStoredValue: 'password o codice 2FA.',
     step1: 'PASSAGGIO 1 DI 3', connect: 'Collega Apple Account', loginInfo: 'L’accesso avviene direttamente con Apple. Questa API inversa non ufficiale può cambiare.', password: 'Password', continueLabel: 'Continua',
-    step2: 'PASSAGGIO 2 DI 3', verification: 'Codice di verifica', codeInfo: 'Inserisci il codice a sei cifre da un dispositivo Apple attendibile.', code: 'Codice 2FA', verify: 'Verifica codice', restart: 'Ricomincia',
+    step2: 'PASSAGGIO 2 DI 3', verification: 'Codice di verifica', codeInfo: 'È stato chiesto ad Apple di mostrare un codice a sei cifre sui dispositivi attendibili.', code: 'Codice 2FA', verify: 'Verifica codice', resend: 'Invia di nuovo il codice', restart: 'Ricomincia',
     step3: 'PASSAGGIO 3 DI 3', which: 'Quale iPhone deve suonare?', deviceInfo: 'Usa Up e Down sull’orologio per cambiare dispositivo.', save: 'Salva', refresh: 'Aggiorna elenco',
     ready: 'Pronto per la ricerca', selected: '{device} è selezionato. Tieni Select su Pebble per 0,65 secondi.', session: 'Sessione Apple', active: 'Attiva', notSaved: 'Non salvata', change: 'Cambia dispositivo', logout: 'Esci ed elimina la sessione', reopenInfo: 'Pebble chiude le impostazioni dopo ogni azione. Riaprile per continuare.'
   },
   pt: {
     subtitle: 'Definições complementares Pebble', stored: 'Guardado no iPhone:', storedValue: 'tokens da sessão Apple, cookies e ID do iPhone selecionado.', notStored: 'Não é guardado:', notStoredValue: 'palavra-passe ou código 2FA.',
     step1: 'PASSO 1 DE 3', connect: 'Ligar Apple Account', loginInfo: 'O início de sessão é feito diretamente na Apple. Esta API inversa não oficial pode mudar.', password: 'Palavra-passe', continueLabel: 'Continuar',
-    step2: 'PASSO 2 DE 3', verification: 'Código de verificação', codeInfo: 'Introduza o código de seis dígitos de um dispositivo Apple fidedigno.', code: 'Código 2FA', verify: 'Verificar código', restart: 'Começar de novo',
+    step2: 'PASSO 2 DE 3', verification: 'Código de verificação', codeInfo: 'Foi pedido à Apple que mostre um código de seis dígitos nos dispositivos fidedignos.', code: 'Código 2FA', verify: 'Verificar código', resend: 'Enviar código novamente', restart: 'Começar de novo',
     step3: 'PASSO 3 DE 3', which: 'Qual iPhone deve tocar?', deviceInfo: 'Use Up e Down no relógio para mudar de dispositivo.', save: 'Guardar', refresh: 'Atualizar lista',
     ready: 'Pronto para localizar', selected: '{device} está selecionado. Segure Select no Pebble por 0,65 segundos.', session: 'Sessão Apple', active: 'Ativa', notSaved: 'Não guardada', change: 'Mudar dispositivo', logout: 'Terminar sessão e eliminá-la', reopenInfo: 'O Pebble fecha as definições após cada ação. Abra-as novamente para continuar.'
   }
@@ -91,7 +91,7 @@ function pageBody(model, copy) {
   if (stage === 'two-factor') {
     return '<p class="step">' + copy.step2 + '</p><h1>' + copy.verification + '</h1>' + error + '<p>' + copy.codeInfo + '</p>' +
       '<form id="form"><label>' + copy.code + '<input name="code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code" required></label>' +
-      '<button>' + copy.verify + '</button></form><button class="secondary" data-action="logout">' + copy.restart + '</button>' + reopenNotice(copy) + privacy(copy);
+      '<button>' + copy.verify + '</button></form><button class="secondary" data-action="resend">' + copy.resend + '</button><button class="secondary" data-action="logout">' + copy.restart + '</button>' + reopenNotice(copy) + privacy(copy);
   }
   if (stage === 'devices') {
     var devices = model.devices || [];

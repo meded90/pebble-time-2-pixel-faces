@@ -19,7 +19,7 @@ embedded PebbleKit JS runtime.
 - 650 ms Select hold guard against accidental requests;
 - Up/Down selection across multiple iPhones;
 - direct Apple Account SRP-2048 sign-in with `s2k` and `s2k_fo`;
-- trusted-device 2FA, trusted-session acquisition, and device selection;
+- explicit trusted-device 2FA notification and resend, trusted-session acquisition, and device selection;
 - direct `initClient`, `accountLogin`, and `playSound` requests to Apple domains;
 - one Find My session refresh retry after HTTP 450;
 - distinct expired-auth, offline, rate-limit, and error states;
@@ -51,7 +51,7 @@ npm test
 ```
 
 The local build is `build/find-my-iphone.pbw`. The audited published artifact is
-[`../dist/published/find-my-iphone-0.1.2-emery.pbw`](../dist/published/find-my-iphone-0.1.2-emery.pbw).
+[`../dist/published/find-my-iphone-0.1.4-emery.pbw`](../dist/published/find-my-iphone-0.1.4-emery.pbw).
 
 Install in the emulator with:
 
@@ -64,14 +64,14 @@ Install in the emulator with:
 1. Install the PBW through Pebble Core and open the app settings on the iPhone.
 2. Enter the Apple Account and password. The password exists only in memory for
    SRP and is cleared immediately after use.
-3. Enter the six-digit trusted-device code if Apple requests 2FA.
+3. If Apple requests 2FA, approve the sign-in notification and enter the six-digit code shown on a trusted device. Use “Send code again” if the notification does not appear.
 4. Select the target iPhone and save.
 5. Open the watchapp and hold Select for 650 ms.
 6. “Signal sent” means Apple returned `snd.statusCode = 200`. It confirms command
    acceptance, not an acoustic callback from the phone speaker.
 
-This version supports trusted-device 2FA codes. Requesting a separate SMS code
-is not implemented.
+This version explicitly requests trusted-device 2FA codes and supports resending
+that request. Requesting a separate SMS or voice-call code is not implemented.
 
 ## Authentication storage
 

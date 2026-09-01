@@ -44,7 +44,7 @@ its own UUID, version, source directory, and independently built `.pbw` package.
 | [Zodiac: Gemini](zodiac-gemini/) | Watchface | 1.4.0 | Illustrated Gemini face with large digital time. |
 | [Gym Zones](gym-zones/) | Watchapp | 1.0.0 | Strength workout, rest, HR zones, and one-minute PPG-HRV. |
 | [Wrist Agent](wrist-agent/) | Watchapp | 1.0.0 | Voice front end for a privately deployed ChatGPT Workspace Agent bridge. |
-| [Find My iPhone](find-my-iphone/) | Watchapp | 0.1.2 | Experimental direct Apple Find My sound request from the paired iPhone. |
+| [Find My iPhone](find-my-iphone/) | Watchapp | 0.1.4 | Experimental direct Apple Find My sound request from the paired iPhone. |
 | [Voice Drop](voice-drop/) | Watchapp | 0.2.0 | On-watch microphone recording with patched firmware and phone bridge. |
 <!-- projects:catalog:end -->
 
@@ -115,7 +115,7 @@ validation boundaries.
 - [Codex Weekly](https://apps.repebble.com/codex-weekly_27f48d86803e471a83b93dfe) — 1.0.7
 - [Starry Digits](https://apps.repebble.com/starry-digits_bacf5a80f08845558f44cf65) — 1.1.0
 - [Zodiac: Gemini](https://apps.repebble.com/zodiac-gemini_a1c61f1227144535accbf53c) — 1.3.1
-- [Find My iPhone](https://apps.repebble.com/7ffae9b84d714b9882f7a40f) — 0.1.2
+- [Find My iPhone](https://apps.repebble.com/7ffae9b84d714b9882f7a40f) — 0.1.4
 <!-- projects:published:end -->
 
 See [MARKETPLACE_RU.md](MARKETPLACE_RU.md) for the publishing workflow and

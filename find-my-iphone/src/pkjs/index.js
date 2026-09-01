@@ -292,6 +292,21 @@ Pebble.addEventListener('webviewclosed', function(event) {
     });
     return;
   }
+  if (response.action === 'resend') {
+    setConfigStage('two-factor');
+    sendState(STATE.REQUESTING);
+    apple.requestTrustedDeviceCode(pendingAuth).then(function(nextPendingAuth) {
+      pendingAuth = nextPendingAuth;
+      writeJson(PENDING_KEY, pendingAuth);
+      setConfigError('');
+      sendState(STATE.AUTH_REQUIRED);
+    }).catch(function(error) {
+      setConfigError(error);
+      console.log('Find My 2FA resend failed: ' + lastError);
+      sendState(STATE.AUTH_REQUIRED);
+    });
+    return;
+  }
   if (response.action === 'verify') {
     setConfigStage('two-factor');
     var code = String(response.code || '');

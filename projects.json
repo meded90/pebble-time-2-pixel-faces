@@ -228,7 +228,7 @@
       "type": "watchapp",
       "buildGroup": "standard-apps",
       "directory": "find-my-iphone",
-      "sourceVersion": "0.1.2",
+      "sourceVersion": "0.1.4",
       "platforms": ["emery"],
       "preview": "find-my-iphone/assets/emulator-v9-native-fit.png",
       "description": {
@@ -237,13 +237,13 @@
       },
       "store": {
         "status": "published",
-        "publishedVersion": "0.1.2",
+        "publishedVersion": "0.1.4",
         "url": "https://apps.repebble.com/7ffae9b84d714b9882f7a40f"
       },
       "artifact": {
         "status": "published",
-        "version": "0.1.2",
-        "path": "dist/published/find-my-iphone-0.1.2-emery.pbw"
+        "version": "0.1.4",
+        "path": "dist/published/find-my-iphone-0.1.4-emery.pbw"
       }
     },
     {

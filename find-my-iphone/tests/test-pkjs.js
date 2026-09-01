@@ -62,6 +62,9 @@ async function main() {
   assert(loginHtml.indexOf('temporary-password') === -1);
   assert(loginHtml.indexOf('пароль и код 2FA') !== -1);
   assert(loginHtml.indexOf('Откройте их снова, чтобы продолжить') !== -1);
+  var twoFactorHtml = decodeURIComponent(configPage.generateUrl({ stage: 'two-factor', locale: 'ru_RU' }).split(',')[1]);
+  assert(twoFactorHtml.indexOf('Отправить код ещё раз') !== -1);
+  assert(twoFactorHtml.indexOf('data-action="resend"') !== -1);
   assert.strictEqual(configPage.languageFor('de_DE'), 'de');
   assert.strictEqual(configPage.languageFor('ja_JP'), 'en');
   assert(decodeURIComponent(configPage.generateUrl({ stage: 'login', locale: 'de_DE' }).split(',')[1]).indexOf('Apple Account verbinden') !== -1);
@@ -157,10 +160,41 @@ async function main() {
     'scnt': 'two-factor-scnt',
     'X-Apple-ID-Session-Id': 'two-factor-session'
   });
+  await new Promise(function(resolve) { setImmediate(resolve); });
+  assert.strictEqual(requests.length, 9);
+  assert.strictEqual(requests[8].method, 'PUT');
+  assert.strictEqual(requests[8].url, 'https://idmsa.apple.com/appleauth/auth/verify/trusteddevice/securitycode');
+  assert.strictEqual(requests[8].headers.scnt, 'two-factor-scnt');
+  assert.strictEqual(requests[8].headers['X-Apple-ID-Session-Id'], 'two-factor-session');
+  assert.strictEqual(requests[8].body, null);
+  respond(requests[8], 202, null, { 'scnt': 'verification-scnt' });
   var loginResult = await loginPromise;
   assert.strictEqual(loginResult.needs2FA, true);
-  assert.strictEqual(loginResult.session.scnt, 'two-factor-scnt');
+  assert.strictEqual(loginResult.session.scnt, 'verification-scnt');
   assert.strictEqual(loginResult.session.sessionId, 'two-factor-session');
+
+  var verifyPromise = apple.verifyTwoFactor(loginResult.session, '123 456');
+  assert.strictEqual(requests.length, 10);
+  assert.strictEqual(requests[9].method, 'POST');
+  assert.deepStrictEqual(JSON.parse(requests[9].body), { securityCode: { code: '123456' } });
+  respond(requests[9], 409, { securityCode: { valid: true } }, {
+    'X-Apple-Session-Token': 'accepted-session-token',
+    'X-Apple-ID-Account-Country': 'AE'
+  });
+  await new Promise(function(resolve) { setImmediate(resolve); });
+  assert.strictEqual(requests.length, 11);
+  assert.strictEqual(requests[10].url, 'https://idmsa.apple.com/appleauth/auth/2sv/trust');
+  respond(requests[10], 204, null, { 'X-Apple-TwoSV-Trust-Token': 'trusted-token' });
+  await new Promise(function(resolve) { setImmediate(resolve); });
+  assert.strictEqual(requests.length, 12);
+  assert.strictEqual(requests[11].url, 'https://setup.icloud.com/setup/ws/1/accountLogin');
+  respond(requests[11], 200, {
+    dsInfo: { dsid: '12345', countryCode: 'AE' },
+    webservices: { findme: { url: 'https://fmip.example.com:443' } }
+  });
+  var verifiedSession = await verifyPromise;
+  assert.strictEqual(verifiedSession.sessionToken, 'accepted-session-token');
+  assert.strictEqual(verifiedSession.trustToken, 'trusted-token');
 
   Object.keys(storage).forEach(function(key) {
     assert(storage[key].indexOf('correct horse battery staple') === -1, 'password leaked into ' + key);
@@ -190,6 +224,21 @@ async function main() {
   var resumedConnectedHtml = decodeURIComponent(openedUrls[openedUrls.length - 1].split(',')[1]);
   assert(resumedConnectedHtml.indexOf('Ready to find') !== -1,
     'the next manual settings reopen must show the connected step');
+
+  delete storage.find_my_iphone_session_v1;
+  delete storage.find_my_iphone_devices_v1;
+  storage.find_my_iphone_pending_auth_v1 = JSON.stringify(loginResult.session);
+  storage.find_my_iphone_config_stage_v1 = JSON.stringify('two-factor');
+  delete require.cache[require.resolve(path.join(project, 'src', 'pkjs', 'index.js'))];
+  require(path.join(project, 'src', 'pkjs', 'index.js'));
+  var beforeResend = requests.length;
+  listeners.webviewclosed({ response: encodeURIComponent(JSON.stringify({ action: 'resend' })) });
+  assert.strictEqual(requests.length, beforeResend + 1);
+  assert.strictEqual(requests[beforeResend].method, 'PUT');
+  respond(requests[beforeResend], 202, null, { 'scnt': 'resent-scnt' });
+  await new Promise(function(resolve) { setImmediate(resolve); });
+  assert.strictEqual(JSON.parse(storage.find_my_iphone_pending_auth_v1).scnt, 'resent-scnt');
+  assert.strictEqual(JSON.parse(storage.find_my_iphone_config_stage_v1), 'two-factor');
 
   console.log('PebbleKit JS auth, SRP, storage and Find My request tests passed');
 }

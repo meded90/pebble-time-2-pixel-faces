@@ -208,6 +208,20 @@ function accountLogin(session) {
   });
 }
 
+function requestTrustedDeviceCode(session) {
+  if (!session || !session.sessionId || !session.scnt) return Promise.reject(new Error('NO_2FA_CHALLENGE'));
+  restoreCookies(session.cookieHeader);
+  return requestJson('PUT', AUTH_ROOT + '/verify/trusteddevice/securitycode', {},
+    authHeaders(session.clientId, session)).then(function(response) {
+    if (response.status !== 200 && response.status !== 202 && response.status !== 204) {
+      throw new Error('SEND_2FA_' + appleError(response));
+    }
+    var next = withHeaderSession(session, response.headers);
+    next.needs2FA = true;
+    return next;
+  });
+}
+
 function startLogin(appleId, password, previousSession) {
   var cleanAppleId = String(appleId || '').trim();
   if (!cleanAppleId || !password) return Promise.reject(new Error('CREDENTIALS_REQUIRED'));
@@ -248,7 +262,9 @@ function startLogin(appleId, password, previousSession) {
     session = withHeaderSession(session, completeResponse.headers);
     if (completeResponse.status === 409) {
       session.needs2FA = true;
-      return { needs2FA: true, session: session };
+      return requestTrustedDeviceCode(session).then(function(nextSession) {
+        return { needs2FA: true, session: nextSession };
+      });
     }
     if (completeResponse.status !== 200) throw new Error('SIGN_IN_' + appleError(completeResponse));
     return accountLogin(session).then(function(readySession) {
@@ -264,7 +280,10 @@ function verifyTwoFactor(session, code) {
   return requestJson('POST', AUTH_ROOT + '/verify/trusteddevice/securitycode', {}, authHeaders(session.clientId, session), {
     securityCode: { code: String(code || '').replace(/\D/g, '') }
   }).then(function(response) {
-    if (response.status !== 200 && response.status !== 204) throw new Error('INVALID_2FA_' + appleError(response));
+    var acceptedConflict = response.status === 409 && Boolean(response.headers['x-apple-session-token']);
+    if (response.status !== 200 && response.status !== 204 && !acceptedConflict) {
+      throw new Error('INVALID_2FA_' + appleError(response));
+    }
     verifiedSession = withHeaderSession(session, response.headers);
     return requestJson('GET', AUTH_ROOT + '/2sv/trust', {}, authHeaders(verifiedSession.clientId, verifiedSession));
   }).then(function(response) {
@@ -349,6 +368,7 @@ module.exports = {
   accountLogin: accountLogin,
   playSound: playSound,
   refreshDevices: refreshDevices,
+  requestTrustedDeviceCode: requestTrustedDeviceCode,
   requestJson: requestJson,
   startLogin: startLogin,
   verifyTwoFactor: verifyTwoFactor,

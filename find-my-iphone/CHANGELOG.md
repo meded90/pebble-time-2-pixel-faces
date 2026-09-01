@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.1.4 — 2026-09-01
+
+- Treat Apple's asynchronous HTTP 202 response to the trusted-device notification request as accepted, so the delivered code opens the 2FA entry step instead of returning to the password form.
+
+## 0.1.3 — 2026-09-01
+
+- Explicitly request the trusted-device verification notification after Apple returns the SRP 2FA challenge instead of waiting for a code that was never triggered.
+- Add a localized “Send code again” action that reuses the saved 2FA challenge without asking for the Apple Account password again.
+- Accept Apple's HTTP 409 response to a valid verification code only when the response also issues a new Apple session token.
+- Keep SMS and voice-call verification-code delivery outside this patch; a trusted Apple device is still required.
+
 ## 0.1.2 — 2026-09-01
 
 - Resume the saved login, 2FA, device-selection, or connected step whenever Pebble Settings is opened again.
