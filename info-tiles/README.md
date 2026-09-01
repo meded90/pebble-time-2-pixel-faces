@@ -1,36 +1,36 @@
 # Info Tiles
 
-[Русский](README.md) · [English](README.en.md) · [Все циферблаты](../README.md#нативные-превью-200228)
+**English** · [Русский](README.ru.md) · [All projects](../README.md#project-gallery)
 
 [![Info Tiles](../assets/screenshots/info-tiles.png)](../assets/screenshots/info-tiles.png)
 
-Информационный циферблат для Pebble Time 2 (`emery`, 200×228), который
-собирает основные показатели в крупные контрастные плитки.
+An information-focused Pebble Time 2 watchface (`emery`, 200×228) that places
+the most useful metrics in large, high-contrast tiles.
 
-## Возможности
+## Features
 
-- время и дата с системным форматом 12/24 часа;
-- заряд часов;
-- текущая температура и погодный код Open-Meteo;
-- шаги за сегодня и последнее доступное значение пульса из Pebble Health;
-- обновление погоды через подключённый телефон примерно раз в 30 минут;
-- безопасные значения `--`, если GPS, сеть или Health недоступны.
+- time and date using the system 12/24-hour preference;
+- watch battery percentage;
+- current temperature and Open-Meteo weather code;
+- today's steps and the latest available heart-rate value from Pebble Health;
+- weather refresh through the connected phone approximately every 30 minutes;
+- safe `--` placeholders when GPS, networking, or Health data is unavailable.
 
-## Сборка и запуск
+## Build and run
 
 ```bash
 pebble build
 pebble install --emulator emery --logs
 ```
 
-Готовый пакет: [`../dist/info-tiles.pbw`](../dist/info-tiles.pbw).
+Release candidate: [`../dist/candidates/info-tiles-1.0.0.pbw`](../dist/candidates/info-tiles-1.0.0.pbw).
 
-## Разрешения и приватность
+## Permissions and privacy
 
-Нужны геолокация телефона и Pebble Health. Координаты отправляются напрямую в
-Open-Meteo только для погоды; данные Health читаются локально и циферблатом не
-загружаются на сторонний сервер.
+Phone location and Pebble Health are required. Coordinates go directly to
+Open-Meteo for weather lookup; Health values are read locally and are not
+uploaded by the watchface.
 
-## Все циферблаты
+## All watchfaces
 
 [Mosaic Grid](../mosaic-grid/) · [Flip Board](../flip-board/) · [Info Tiles](../info-tiles/) · [Codex Weekly](../codex-weekly/) · [Starry Digits](../starry-digits/) · [meded90](../meded90/) · [Zodiac: Aquarius](../zodiac-aquarius/) · [Zodiac: Gemini](../zodiac-gemini/)

@@ -1,6 +1,6 @@
 # Wrist Agent on Google Cloud Functions Gen 2
 
-[Русский](GCP_FUNCTIONS.md) · [Main README](README.en.md)
+[Русский](GCP_FUNCTIONS.md) · [Main README](README.md)
 
 This production deployment option runs the bridge as a Node.js 22 Cloud
 Functions Gen 2 HTTP function. Firestore persists requests, idempotency, and

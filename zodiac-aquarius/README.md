@@ -1,33 +1,33 @@
 # Zodiac: Aquarius
 
-[Русский](README.md) · [English](README.en.md) · [Все циферблаты](../README.md#нативные-превью-200228)
+**English** · [Русский](README.ru.md) · [All projects](../README.md#project-gallery)
 
 [![Zodiac: Aquarius](../assets/screenshots/zodiac-aquarius.png)](../assets/screenshots/zodiac-aquarius.png)
 
-Иллюстрированный циферблат Водолея для Pebble Time 2 (`emery`, 200×228) с
-вертикально расположенными часами и минутами.
+An illustrated Aquarius watchface for Pebble Time 2 (`emery`, 200×228) with
+hours and minutes arranged vertically.
 
-## Возможности
+## Features
 
-- полноэкранная 64-цветная иллюстрация в формате PBI;
-- отдельные строки часов и минут;
-- системный формат времени 12/24 часа;
-- обновление раз в минуту;
-- автономная работа без настроек и сети.
+- full-screen 64-color artwork stored as PBI;
+- separate hour and minute rows;
+- system 12/24-hour preference;
+- updates once per minute;
+- fully offline with no settings.
 
-## Сборка и запуск
+## Build and run
 
 ```bash
 pebble build
 pebble install --emulator emery --logs
 ```
 
-Готовый пакет: [`../dist/zodiac-aquarius.pbw`](../dist/zodiac-aquarius.pbw).
+Release candidate: [`../dist/candidates/zodiac-aquarius-1.3.0.pbw`](../dist/candidates/zodiac-aquarius-1.3.0.pbw).
 
-## Разрешения
+## Permissions
 
-Не требуются.
+None.
 
-## Все циферблаты
+## All watchfaces
 
 [Mosaic Grid](../mosaic-grid/) · [Flip Board](../flip-board/) · [Info Tiles](../info-tiles/) · [Codex Weekly](../codex-weekly/) · [Starry Digits](../starry-digits/) · [meded90](../meded90/) · [Zodiac: Aquarius](../zodiac-aquarius/) · [Zodiac: Gemini](../zodiac-gemini/)

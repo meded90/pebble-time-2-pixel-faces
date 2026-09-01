@@ -1,14 +1,18 @@
 # Art sources
 
-Эти изображения сохранены как художественные исходники и не входят напрямую в ресурсный пакет Pebble:
+**English** · [Русский](README.ru.md)
 
-- `background-concept-source.png` — общий стиль концепта №9: синий диван, жёлтая приподнятая подушка, свободная верхняя зона, без текста и телефона.
-- `sprite-atlas-source.png` — визуальный референс восьми объектов: скрытый/обычный/звонящий телефон, два положения подушки и два status badge.
+These files are retained as art sources and are not included directly in the
+Pebble resource package.
 
-- `user-reference-couch-v2.png` и `user-reference-sprites-v2.png` — два исходных изображения пользователя без изменений.
-- `background-v2-generated.png` — чистый диван без телефона, подушки и UI, сгенерированный по обоим референсам.
-- `sprite-atlas-v2-generated.png` — прозрачный атлас 4×3 с состояниями телефона, подушки и badge, сгенерированный по обоим референсам.
-- `reported-defect-arm-v3.png` и `reported-defect-cushion-v3.png` — увеличенные фрагменты дефектов, присланные пользователем.
-- `background-v3-generated.png` — повторно сгенерированный фон с очищенным стыком подлокотника и ограниченной синей гаммой.
+- `background-concept-source.png` and `sprite-atlas-source.png` preserve the
+  original visual concept.
+- `user-reference-*.png` are unchanged user-provided references.
+- `*-generated.png` files are generated backgrounds and sprite atlases.
+- `reported-defect-*.png` preserve enlarged defect references used during
+  cleanup.
 
-`tools/build-assets.swift` вырезает ячейки прозрачного атласа, удаляет полупрозрачную кайму, уменьшает nearest-neighbour и выбирает ближайший цвет из тематического подмножества официальной 64-цветной сетки Pebble. После сборки каждый PNG автоматически проверяется: RGB-каналы только `00/55/AA/FF`, alpha только `0/255`. Старые исходники сохранены для сравнения.
+`tools/build-assets.swift` extracts the transparent atlas cells, removes
+semi-transparent fringes, scales with nearest-neighbour sampling, and maps every
+pixel to a themed subset of Pebble's official 64-color palette. The build audit
+requires RGB channels from `00/55/AA/FF` and alpha from `0/255` only.

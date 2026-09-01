@@ -65,7 +65,7 @@ module.exports = [
         id: 'check_server_status',
         primary: true,
         defaultValue: 'Check server status',
-        description: 'Tests the URL and client token entered above without saving the settings.'
+        description: 'Tests the URL and client token entered above and reports how many Personal Usage days were received, without saving settings.'
       },
       {
         type: 'text',

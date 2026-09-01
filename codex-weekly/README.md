@@ -1,98 +1,88 @@
 # Codex Weekly
 
-[Русский](README.md) · [English](README.en.md) · [Все циферблаты](../README.md#нативные-превью-200228)
+**English** · [Русский](README.ru.md) · [All projects](../README.md#project-gallery)
 
 ![Codex Weekly icon](../assets/icons/codex-weekly-icon-144.png)
 
 [![Codex Weekly](../assets/screenshots/codex-weekly.png)](../assets/screenshots/codex-weekly.png)
 
-Нативный watchface для Pebble Time 2 (`emery`, 200×228):
+[Install from RePebble](https://apps.repebble.com/codex-weekly_27f48d86803e471a83b93dfe).
 
-- очень крупное время;
-- только самый длинный доступный лимит Codex;
-- процент остатка и время до сброса;
-- heatmap личного использования за 12 недель на всю ширину экрана;
-- подписи месяцев и жёлтые границы перехода между месяцами;
-- фоновые обновления через PebbleKit JS.
+A native Pebble Time 2 watchface (`emery`, 200×228) with:
 
-Квадрат в правом верхнем углу показывает состояние синхронизации: серый —
-bridge не настроен, голубой — обновление выполняется, зелёный — данные получены,
-красный — ошибка соединения или ответа. Только при ошибке слева от квадрата
-показывается безопасный код причины: `AUTH`, `TOKEN`, `TIME`, `NET`, `DATA`
-или `ERR`; он выровнен по правому краю и нарисован тем же пиксельным шрифтом,
-что `CODEX`. При ошибке сохранённая квота удаляется:
-watchface показывает `—` и серые ячейки, а не устаревшие данные.
+- oversized time;
+- the longest available Codex quota window;
+- remaining percentage and time until reset;
+- a 12-week personal usage heatmap;
+- month labels and highlighted month boundaries;
+- background updates through PebbleKit JS.
 
-## Запуск через Cloud Run
+The square in the upper-right corner shows synchronization state: gray means
+not configured, blue means updating, green means data was received, and red
+means a connection or response error. Only on an error, a safe cause code
+(`AUTH`, `TOKEN`, `TIME`, `NET`, `DATA`, or `ERR`) appears to the left of the
+square, right-aligned and in the same pixel font as `CODEX`. On an error,
+stored quota data is cleared so the watchface
+shows `—` and gray cells instead of stale data.
 
-У проекта нет общего сервера, предустановленного URL или Google Cloud project
-ID. Каждый пользователь разворачивает собственный экземпляр и вставляет в
-настройки watchface два значения: URL `/status` и отдельный клиентский токен.
+## Cloud Run setup
 
-Пошаговые инструкции:
+The project has no shared backend, preconfigured service URL, or Google Cloud
+project ID. Every user deploys a private instance and enters two values in the
+watchface settings: the `/status` URL and a separate client token.
 
-- [Русский](cloud-run/README.md)
-- [English](cloud-run/README.en.md)
+Step-by-step deployment guides:
 
-После успешной синхронизации квадрат становится зелёным. При отсутствии
-данных, ошибке токена или временной ошибке сервиса watchface показывает `—` и
-серые блоки — старые или выдуманные данные не выводятся.
+- [English](cloud-run/README.md)
+- [Русский](cloud-run/README.ru.md)
 
-В настройках есть кнопка **Check server status**. Она проверяет введённые URL
-`/status` и клиентский токен без сохранения настроек, показывает остаток при
-успехе либо безопасный код ошибки. Токен в результате проверки не выводится.
+When data, authentication, or the service is unavailable, the watchface shows
+neutral `—` values and gray blocks instead of stale or invented data.
 
-## Локальный bridge (необязательная альтернатива)
+The settings page includes **Check server status**. It tests the entered
+`/status` URL and client token without saving settings, displays the number of
+received daily Personal Usage buckets (out of 84) on success or a safe error
+code on failure, and never displays the token.
 
-Codex App Server предоставляет официальные методы
-`account/rateLimits/read` и `account/usage/read`. Они используют существующий
-вход ChatGPT в Codex на Mac. Обычный OpenAI Platform API key не подходит для
-этого watchface: Platform usage и персональные лимиты ChatGPT/Codex — разные
-системы.
+## Local bridge alternative
 
-Локальный bridge запускается на Mac, запрашивает только лимиты и дневные счётчики,
-преобразует их в компактный JSON и отдаёт PebbleKit JS. Токен bridge хранится
-на телефоне и не отправляется на часы.
+Codex App Server provides `account/rateLimits/read` and
+`account/usage/read`. They use the existing ChatGPT-backed Codex sign-in on
+the Mac. An OpenAI Platform API key is not a replacement because Platform API
+usage and personal ChatGPT/Codex limits are separate systems.
 
-Cloud Run использует этот же App Server, но хранит копию авторизации Codex в
-Secret Manager. Это экспериментальный, не поддерживаемый OAuth-контракт: после
-`codex logout`, нового `codex login` или `401` нужно загрузить новую версию
-секрета по [инструкции Cloud Run](cloud-run/README.md).
+The local bridge requests only quota and daily usage data, normalizes it, and
+serves compact JSON to PebbleKit JS. Its bearer token remains on the phone and
+is never sent to the watch.
 
-## Где взять ключ
+Cloud Run uses the same App Server but stores a copy of Codex authentication
+in Secret Manager. This is experimental rather than a supported cloud OAuth
+contract; review the limitation in the Cloud Run guide before using it.
 
-Для личных лимитов Codex нужен вход через ChatGPT, а не OpenAI Platform API
-key. Официальная инструкция: [Codex authentication](https://learn.chatgpt.com/docs/auth.md).
+## Sign into Codex
 
-1. Авторизуйте Codex на Mac:
+1. Sign into Codex with ChatGPT:
 
    ```bash
    codex login
    ```
 
-2. Проверьте статус входа:
+2. Check the session:
 
    ```bash
    codex login status
    ```
 
-3. Создайте отдельный секрет для локального bridge:
+3. Generate a separate token for the local bridge:
 
    ```bash
    openssl rand -hex 24
    ```
 
-Полученная строка и есть `CODEX_PEBBLE_TOKEN`. Её не нужно получать на сайте:
-она создаётся локально и защищает только ваш bridge. Не вставляйте в настройки
-watchface ключ со страницы [OpenAI Platform API keys](https://platform.openai.com/api-keys) —
-API-key-only авторизация не предоставляет персональные лимиты и историю
-использования Codex.
+The generated value is `CODEX_PEBBLE_TOKEN`. It protects only your bridge; it
+is not an OpenAI API key and should not be committed or shared.
 
-## Запуск bridge
-
-Сначала выполните шаги из раздела «Где взять ключ».
-
-Запустите bridge в локальной сети, подставив созданный токен:
+## Run the local bridge
 
 ```bash
 CODEX_PEBBLE_HOST=0.0.0.0 \
@@ -100,30 +90,11 @@ CODEX_PEBBLE_TOKEN=replace-with-generated-token \
 node bridge/server.mjs
 ```
 
-При запуске bridge сам выполнит эквивалент команды
-`ipconfig getifaddr en0`, проверит `/healthz` и выведет готовый адрес:
+The bridge prints the detected network address, status URL, and health check.
+The phone and Mac must be on the same network, and the Mac must remain on.
+Never expose the plain HTTP bridge directly to the public internet.
 
-```text
-Network: ipconfig getifaddr en0 -> 192.168.1.20
-Status URL: http://192.168.1.20:8765/status
-Health check: OK (http://192.168.1.20:8765/healthz)
-```
-
-Если активная сеть использует другой интерфейс, укажите его при запуске,
-например `CODEX_PEBBLE_INTERFACE=en1`.
-
-В настройках watchface укажите:
-
-```text
-Status URL: http://IP-АДРЕС-MAC:8765/status
-Bridge token: токен из CODEX_PEBBLE_TOKEN
-```
-
-Телефон и Mac должны находиться в одной сети, а Mac должен быть включён.
-Не публикуйте HTTP-порт bridge в интернете. Для удалённого доступа используйте
-HTTPS reverse proxy или защищённый tunnel.
-
-Проверка bridge с Mac:
+Test it locally:
 
 ```bash
 curl \
@@ -131,7 +102,7 @@ curl \
   http://127.0.0.1:8765/status
 ```
 
-## Сборка
+## Build and run
 
 ```bash
 npm install
@@ -139,8 +110,14 @@ pebble build
 pebble install --emulator emery
 ```
 
-Готовый пакет: [`../dist/codex-weekly.pbw`](../dist/codex-weekly.pbw).
+Published package: [`../dist/published/codex-weekly-1.0.7.pbw`](../dist/published/codex-weekly-1.0.7.pbw).
 
-## Все циферблаты
+## Permissions and privacy
+
+The watchface uses configurable PebbleKit JS networking. Keep the bridge URL
+and token private. The watch receives only normalized quota and heatmap data,
+not ChatGPT credentials or chat history.
+
+## All watchfaces
 
 [Mosaic Grid](../mosaic-grid/) · [Flip Board](../flip-board/) · [Info Tiles](../info-tiles/) · [Codex Weekly](../codex-weekly/) · [Starry Digits](../starry-digits/) · [meded90](../meded90/) · [Zodiac: Aquarius](../zodiac-aquarius/) · [Zodiac: Gemini](../zodiac-gemini/)

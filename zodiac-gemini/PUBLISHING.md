@@ -45,7 +45,7 @@ while the larger rounded clock is easier to read.
 
 ## Upload files
 
-- **PBW:** `dist/zodiac-gemini.pbw`
+- **PBW:** `dist/candidates/zodiac-gemini-1.4.0.pbw`
 - **Screenshot (exactly 200×228):** `assets/screenshots/zodiac-gemini.png`
 - **Banner (exactly 720×320):** `assets/banners/zodiac-gemini-banner-720x320.png`
 - **Small Icon (80×80):** `assets/icons/zodiac-gemini-icon-80.png`

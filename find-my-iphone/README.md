@@ -1,41 +1,47 @@
 # Find My iPhone for Pebble Time 2
 
-Нативное приложение для Pebble Time 2 (`emery`): удержание Select отправляет с iPhone прямой HTTPS-запрос Apple Find My `playSound`. Промежуточного сервера и стороннего приложения-компаньона нет — используется Pebble Core и встроенный PebbleKit JS.
+**English** · [Русский](README.ru.md) · [All projects](../README.md#project-gallery)
 
-> Apple не публикует этот API. Реализация основана на reverse engineering и может перестать работать после изменений Apple. Она не связана с Apple и не должна публиковаться как официальный клиент Find My.
+[![Find My iPhone](assets/emulator-v9-native-fit.png)](assets/emulator-v9-native-fit.png)
 
-## Что реализовано
+A native Pebble Time 2 (`emery`) watchapp. Holding Select makes the paired
+iPhone send a direct HTTPS Apple Find My `playSound` request. There is no relay
+server or third-party companion; the implementation uses Pebble Core and its
+embedded PebbleKit JS runtime.
 
-- нативный экран часов на C с 10 состояниями, спрайтами и анимацией звонка;
-- защита от случайного вызова: Select нужно удерживать 650 мс;
-- выбор одного из нескольких iPhone кнопками Up / Down;
-- прямой вход Apple Account по SRP-2048 (`s2k` и `s2k_fo`);
-- trusted-device 2FA, получение доверенной сессии и выбор iPhone;
-- `initClient`, `accountLogin` и `playSound` напрямую на доменах Apple;
-- одно повторное получение Find My-сессии при HTTP 450;
-- отдельные состояния для истёкшей авторизации, отсутствия сети, rate limit и ошибки;
-- локальный cooldown 10 секунд и `REQUEST_ID`, исключающие случайный дубль;
-- интерактивный HTML-прототип часов и настройки на iPhone;
-- автоматический язык Pebble OS/iOS: русский, украинский, английский, немецкий, испанский, французский, итальянский и португальский; для остальных локалей — английский;
-- графика v3 с очищенными краями, тематическими подмножествами палитры Pebble и автоматическим пиксельным аудитом;
-- контрактные тесты PKJS и реальная сборка PBW для `emery`.
+> Apple does not publish this API. The reverse-engineered integration can stop
+> working after an Apple change, is not affiliated with Apple, and must not be
+> presented as an official Find My client.
 
-## Прототип
+## Features
 
-Откройте `prototype/index.html` через локальный HTTP-сервер:
+- native C watch UI with ten states, sprites, and ringing animation;
+- 650 ms Select hold guard against accidental requests;
+- Up/Down selection across multiple iPhones;
+- direct Apple Account SRP-2048 sign-in with `s2k` and `s2k_fo`;
+- trusted-device 2FA, trusted-session acquisition, and device selection;
+- direct `initClient`, `accountLogin`, and `playSound` requests to Apple domains;
+- one Find My session refresh retry after HTTP 450;
+- distinct expired-auth, offline, rate-limit, and error states;
+- ten-second local cooldown and `REQUEST_ID` duplicate protection;
+- interactive watch and iPhone-settings HTML prototype;
+- automatic RU, UK, EN, DE, ES, FR, IT, and PT localization, with English fallback;
+- palette-audited v3 graphics and contract tests for PebbleKit JS.
+
+## Interactive prototype
 
 ```sh
 cd find-my-iphone
 python3 -m http.server 49381 --bind 127.0.0.1
 ```
 
-Затем перейдите на `http://127.0.0.1:49381/prototype/`.
+Open `http://127.0.0.1:49381/prototype/`. Watch mode implements the real hold
+timer, phone selection, selectable request outcomes, and direct access to all
+ten UI states. iPhone Settings mode provides a clickable demonstration of the
+Apple Account → 2FA → device → active-session flow. Prototype values are local
+examples and are not submitted anywhere.
 
-В режиме «Часы» можно зажать среднюю кнопку и пройти реальный таймер удержания, выбрать результат следующего запроса, переключить iPhone кнопками Up / Down и открыть напрямую любое из 10 состояний.
-
-В режиме «Настройка на iPhone» кликабельна вся цепочка Apple Account → 2FA → выбор iPhone → активная сессия. Значения в прототипе демонстрационные и никуда не отправляются.
-
-## Сборка
+## Build and test
 
 ```sh
 cd find-my-iphone
@@ -44,85 +50,92 @@ npm test
 ../.venv/bin/pebble build
 ```
 
-Готовый файл: `build/find-my-iphone.pbw`.
+The local build is `build/find-my-iphone.pbw`. The audited release candidate is
+[`../dist/candidates/find-my-iphone-0.1.0-emery.pbw`](../dist/candidates/find-my-iphone-0.1.0-emery.pbw).
 
-Установка в эмулятор:
+Install in the emulator with:
 
 ```sh
 ../.venv/bin/pebble install --emulator emery
 ```
 
-## Первый запуск
+## First run
 
-1. Установите PBW через Pebble Core и откройте настройки приложения на iPhone.
-2. Введите Apple Account и пароль. Пароль используется только в памяти для SRP и сразу очищается.
-3. Если Apple потребует 2FA, введите шестизначный код с доверенного устройства.
-4. Выберите нужный iPhone и сохраните настройку.
-5. Откройте приложение на часах и удерживайте Select 650 мс.
-6. Экран «Сигнал отправлен» означает, что Apple вернула `snd.statusCode = 200`. Это подтверждение принятия команды, а не обратный акустический сигнал от динамика.
+1. Install the PBW through Pebble Core and open the app settings on the iPhone.
+2. Enter the Apple Account and password. The password exists only in memory for
+   SRP and is cleared immediately after use.
+3. Enter the six-digit trusted-device code if Apple requests 2FA.
+4. Select the target iPhone and save.
+5. Open the watchapp and hold Select for 650 ms.
+6. “Signal sent” means Apple returned `snd.statusCode = 200`. It confirms command
+   acceptance, not an acoustic callback from the phone speaker.
 
-Текущая версия поддерживает 2FA через код доверенного устройства. Отдельный запрос SMS-кода не реализован.
+This version supports trusted-device 2FA codes. Requesting a separate SMS code
+is not implemented.
 
-## Как хранится авторизация
+## Authentication storage
 
-PebbleKit JS использует `localStorage` Pebble Core, изолированный UUID приложения `1ea8ffd9-0fd5-4bbe-b4b8-bf4589c94806`.
+PebbleKit JS uses Pebble Core `localStorage`, isolated by application UUID
+`1ea8ffd9-0fd5-4bbe-b4b8-bf4589c94806`.
 
-Хранятся:
+Stored locally:
 
-- Apple Account (для подписи SRP и понятного повторного входа);
-- `clientId`, `sessionToken`, `trustToken`, `accountCountry`;
-- `dsid`, URL сервиса Find My и cookie jar;
-- ID и короткие имена найденных iPhone;
-- выбранный ID и время последнего обновления.
-- последняя системная локаль часов/телефона для языка страницы настройки.
+- Apple Account identifier;
+- `clientId`, `sessionToken`, `trustToken`, and `accountCountry`;
+- `dsid`, Find My service URL, and cookie jar;
+- device IDs and short names;
+- selected device ID, refresh time, and last system locale.
 
-Не хранятся:
+Never stored:
 
-- пароль Apple Account;
-- шестизначный код 2FA;
-- координаты устройств;
-- какие-либо OpenAI/внешние токены.
+- Apple Account password;
+- six-digit 2FA code;
+- device coordinates;
+- OpenAI or other unrelated tokens.
 
-Важно: `localStorage` — это не iOS Keychain и не отдельное зашифрованное хранилище приложения. Сессионные токены защищены моделью данных Pebble Core и iOS, но пользователь с доступом к контейнеру/резервной копии телефона потенциально сможет их извлечь. Кнопка «Выйти и удалить сессию» очищает session, pending 2FA, список устройств и выбор.
+`localStorage` is not iOS Keychain or a separate encrypted application store. A
+person with access to the phone container or backup could potentially extract
+session tokens. “Sign out and delete session” clears session state, pending 2FA,
+the device list, and the selection.
 
-## Поток данных
+## Data flow
 
 ```text
 Pebble Select
   -> AppMessage: PLAY_SOUND + REQUEST_ID
-  -> PebbleKit JS внутри Pebble Core на iPhone
+  -> PebbleKit JS inside Pebble Core on iPhone
   -> HTTPS POST https://<fmipservice>/fmipservice/client/web/playSound
   -> Apple: snd.statusCode
-  -> AppMessage: STATE + RESULT + безопасный ERROR_CODE
-  -> экран и вибрация Pebble
+  -> AppMessage: STATE + RESULT + safe ERROR_CODE
+  -> Pebble screen and vibration
 ```
 
-Apple ID, пароль, 2FA, cookies и токены никогда не отправляются на часы. На Pebble приходят только состояние, короткое имя/ID выбранного устройства и результат.
+Credentials, 2FA, cookies, and session tokens never go to the watch. Pebble
+receives only state, a short selected-device name/ID, and the request result.
 
-## Домены и разрешения
+## Domains and permissions
 
-Приложение обращается только к:
+- `https://idmsa.apple.com` for SRP sign-in and 2FA;
+- `https://setup.icloud.com` for `accountLogin` and Find My service discovery;
+- the dynamic HTTPS Find My URL returned by Apple.
 
-- `https://idmsa.apple.com` — SRP-вход и 2FA;
-- `https://setup.icloud.com` — `accountLogin` и поиск URL сервиса Find My;
-- динамическому HTTPS URL Find My, возвращённому самим Apple.
+The app does not request location capability. Bluetooth carries AppMessage
+between Pebble Core and the watch; internet access on the iPhone is required.
 
-Capability геолокации не запрашивается. Bluetooth используется Pebble Core только для AppMessage между телефоном и часами; интернет на iPhone обязателен.
+## Repository layout
 
-## Структура
+- `prototype/` — standalone interactive HTML prototype;
+- `src/c/main.c` — watch UI, controls, AppMessage, and animation;
+- `src/pkjs/index.js` — app state and session persistence;
+- `src/pkjs/apple.js` — Apple auth, 2FA, Find My, and `playSound`;
+- `src/pkjs/crypto.js` — SRP-2048, PBKDF2-SHA256, and M1/M2 proofs;
+- `src/pkjs/config-page.js` — Pebble Core settings page;
+- `tests/` — contract, crypto-vector, and HTTP tests without a real account;
+- `STATE_MACHINE.md` and `ASSET_MANIFEST.md` — UI and art specifications.
 
-- `prototype/` — автономный кликабельный HTML-прототип;
-- `src/c/main.c` — интерфейс часов, кнопки, AppMessage и анимации;
-- `src/pkjs/index.js` — состояние приложения и хранение сессии;
-- `src/pkjs/apple.js` — Apple auth, 2FA, Find My и `playSound`;
-- `src/pkjs/crypto.js` — SRP-2048, PBKDF2-SHA256 и доказательства M1/M2;
-- `src/pkjs/config-page.js` — локальная страница настройки Pebble Core;
-- `tests/` — контрактные, crypto-vector и HTTP-тесты без реального аккаунта;
-- `STATE_MACHINE.md` и `ASSET_MANIFEST.md` — спецификация состояний и графики.
+## Validation boundary
 
-## Проверенный объём
-
-- `npm test` проверяет пакет, ресурсы, отсутствие сохранения пароля/2FA, независимый SRP-вектор и формы Apple-запросов;
-- Pebble SDK 4.33.1 успешно собирает `emery` PBW;
-- состояния `AUTH_REQUIRED` и `READY` визуально проверены в эмуляторе;
-- реальный вход в Apple и реальный звук намеренно не выполнялись: для этого нужны пользовательские credentials и 2FA на физическом iPhone.
+`npm test`, Emery PBW compilation, and the `AUTH_REQUIRED` and `READY` emulator
+states are verified. Real Apple sign-in, real 2FA, and a physical phone sound
+request have intentionally not been performed because they require user
+credentials, a physical iPhone, and a physical Pebble Time 2.

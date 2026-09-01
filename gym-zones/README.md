@@ -1,88 +1,61 @@
 # Gym Zones
 
-[Русский](README.md) · [English](README.en.md)
+**English** · [Русский](README.ru.md) · [All projects](../README.md#project-gallery)
 
-`Gym Zones` — автономное приложение для силовых тренировок на Pebble Time 2.
-Оно показывает текущий пульс и зону, ведёт 60-минутный график, считает общее
-время тренировки и отдых между подходами, а также выполняет короткий
-одно­минутный замер PPG-RMSSD в покое.
+`Gym Zones` is an offline strength-training app for Pebble Time 2. It shows
+current heart rate and zone, keeps a rolling 60-minute graph, tracks workout and
+between-set rest time, and performs a one-minute resting PPG-RMSSD measurement.
 
-Это приложение, а не циферблат. Тренировка не начинается при открытии: нажмите
-центральную кнопку. У Gym Zones нет аккаунта, сети, GPS и сервера; приложение не
-передаёт данные тренировки или датчиков. Настройки хранятся локально на часах и
-в интерфейсе Clay на телефоне. Системная синхронизация Pebble Health управляется
-самой PebbleOS независимо от Gym Zones.
+This is a watchapp, not a watchface. Opening it never starts a workout: press
+Select. Gym Zones has no account, GPS, network service, or server and does not
+transmit workout or sensor data. Settings are kept locally on the watch and by
+the phone-side Clay configuration UI. Any Pebble Health synchronization is an
+operating-system feature outside Gym Zones.
 
-## Требования
+## Requirements and Quick Launch
 
 - Pebble Time 2 (`emery`, 200×228);
-- PebbleOS 4.32 или новее;
-- Pebble SDK 4.33.1 для сборки;
-- включённый Pebble Health и разрешение `health` для пульса и HRV.
+- PebbleOS 4.32 or newer;
+- Pebble SDK 4.33.1 to build;
+- Pebble Health enabled for HR and HRV.
 
-Без Health таймеры продолжают работать, пульс показывается как `--`, а HRV
-выводит причину недоступности.
+Assign it manually with `Settings → Quick Launch → Tap Up → Gym Zones`. Use
+`Hold Up` or the launcher on firmware without `Tap Up`. The Up press that
+launches the app is not reused; press Up again inside Gym Zones to open HRV.
 
-## Quick Launch
+## Controls and behavior
 
-После установки назначьте приложение вручную:
-
-```text
-Settings → Quick Launch → Tap Up → Gym Zones
-```
-
-На прошивке без `Tap Up` используйте `Hold Up` или launcher. Gym Zones не меняет
-системную кнопку самостоятельно. Нажатие, которое запустило приложение, не
-открывает HRV; уже внутри приложения нажмите верхнюю кнопку ещё раз.
-
-## Кнопки
-
-| Состояние | Верхняя | Центральная | Нижняя | Back |
+| State | Up | Select | Down | Back |
 | --- | --- | --- | --- | --- |
-| Итог / ожидание | HRV | Начать | Подсказка | Выйти |
-| Тренировка | HRV | Подтвердить финиш | Отдых | Выйти |
-| Отдых | HRV | Подтвердить финиш | `+30 сек` | Следующий подход |
-| HRV без тренировки | Вернуться | Начать замер | — | Вернуться |
-| HRV во время тренировки | Вернуться | Подтвердить финиш | Отдых / `+30` | Вернуться |
+| Summary / idle | HRV | Start | Hint | Exit |
+| Workout | HRV | Confirm finish | Rest | Exit |
+| Rest | HRV | Confirm finish | `+30 sec` | Next set |
+| HRV, idle | Return | Measure | — | Return |
+| HRV, workout | Return | Confirm finish | Rest / `+30` | Return |
 
-`TIME` непрерывно считает время от ручного старта до завершения, включая отдых.
-После выхода активная сессия остаётся доступной десять минут. Открытие в этот
-период продолжает её; иначе следующий запуск фиксирует итог на дедлайне как
-`AUTO FINISH`.
+`TIME` runs continuously through rest. An exited session has a ten-minute resume
+window; otherwise the next launch materializes an `AUTO FINISH` summary at that
+deadline.
 
-## Отдых
+Down starts the configured rest preset (`1:30`, `2:00`, `3:00`, or `5:00`) and
+adds 30 seconds while resting. At zero the watch vibrates once and counts
+overtime. WakeupService reopens Gym Zones at the deadline after exit.
 
-Нижняя кнопка запускает настроенный интервал. По умолчанию это `2:00`; в
-телефонных настройках доступны `1:30`, `2:00`, `3:00` и `5:00`. Повторные
-нажатия добавляют 30 секунд. В ноль часы вибрируют один раз и начинают показывать
-перерасход `+0:01`, `+0:02` и далее.
+Phone settings support manual maximum HR, an age formula, or five strictly
+increasing lower limits. Optional target-zone entry/exit vibration is suppressed
+during rest. Invalid updates never replace the last good settings.
+Heart rate below Z1 is labelled with the neutral `REC`; it is not a medical
+interpretation.
 
-После выхода WakeupService снова открывает Gym Zones в дедлайн. Пульс служит
-только контекстом: приложение не определяет готовность к следующему подходу.
+Outside a workout, open HRV and press Select. Keep still while 60 seconds of
+usable PPI are collected. The first valid result of each local day can enter a
+seven-day baseline; `BASE` appears after three days. During a workout a new
+measurement is blocked.
 
-## Зоны
+This is a `PPG ESTIMATE`, not clinical ECG-HRV, a diagnosis, or a readiness
+score. Raw PPI stays in RAM.
 
-Телефонные настройки поддерживают ручной HRmax `100–240`, возраст `14–100` с
-одной из двух формул либо пять строго возрастающих нижних границ. Для HRmax
-используются диапазоны 50–60–70–80–90%. Можно выбрать целевую зону и включить
-вибрацию при устойчивом входе и выходе; во время отдыха эти сигналы подавляются.
-Невалидные настройки не заменяют последнюю рабочую конфигурацию.
-Пульс ниже Z1 обозначается нейтральным `REC`; это не медицинская оценка.
-
-## HRV
-
-Откройте HRV верхней кнопкой вне тренировки и нажмите центральную. Оставайтесь
-неподвижны: после первого пригодного PPI приложение собирает данные 60 секунд и
-рассчитывает RMSSD. Некачественный замер не заменяет предыдущий результат.
-
-Сохраняются первые качественные результаты семи разных календарных дней; после
-трёх измерений показывается медиана `BASE`. Для сопоставимости измеряйтесь после
-пробуждения. Во время тренировки доступен только просмотр прошлого результата.
-
-`PPG ESTIMATE` не является клиническим ECG-HRV, диагнозом или оценкой готовности.
-Сырые PPI не записываются во flash.
-
-## Сборка и тесты
+## Build and test
 
 ```bash
 cd gym-zones
@@ -92,49 +65,41 @@ npm install
 make -C tests test
 ```
 
-Проверка в эмуляторе:
+The emulator does not validate physical HRV. Test PPI, Wakeup behavior, and
+sample-period cleanup on a real Pebble Time 2. A local build writes
+`build/gym-zones.pbw`; the verified release candidate is
+`../dist/candidates/gym-zones-1.0.0.pbw`.
+See [VALIDATION.md](VALIDATION.md) for the exact emulator and hardware matrix.
 
-```bash
-../.venv/bin/pebble install --emulator emery --logs
-../.venv/bin/pebble emu-heart-rate --emulator emery 148
-../.venv/bin/pebble screenshot --emulator emery gym-zones.png
-```
+## Emulator screenshots
 
-Эмулятор не доказывает работу физического HRV. Поток PPI, Wakeup и сброс
-усиленных периодов HR/HRV нужно проверить на настоящем Pebble Time 2.
-
-Готовый пакет после локальной сборки: `build/gym-zones.pbw`. Проверенная
-релизная копия: `../dist/gym-zones.pbw`. Точная матрица выполненных и
-аппаратных проверок находится в [VALIDATION.md](VALIDATION.md).
-
-## Скриншоты эмулятора
-
-| Первый запуск | Активная Z3 | Активная Z5 |
+| First launch | Active Z3 | Active Z5 |
 | --- | --- | --- |
-| ![Первый запуск](screenshots/first-launch.png) | ![Z3](screenshots/z3.png) | ![Z5](screenshots/z5.png) |
+| ![First launch](screenshots/first-launch.png) | ![Z3](screenshots/z3.png) | ![Z5](screenshots/z5.png) |
 
-| Отдых | Подтверждение финиша | Последний итог |
+| Rest | Finish confirmation | Last summary |
 | --- | --- | --- |
-| ![Отдых](screenshots/rest.png) | ![Подтверждение](screenshots/finish-confirm.png) | ![Итог](screenshots/summary.png) |
+| ![Rest](screenshots/rest.png) | ![Confirmation](screenshots/finish-confirm.png) | ![Summary](screenshots/summary.png) |
 
-| Ниже Z1 | Возврат до дедлайна | Автофиниш |
+| Below Z1 | Resume before deadline | Auto finish |
 | --- | --- | --- |
-| ![REC](screenshots/below-z1.png) | ![Продолжение](screenshots/resumed-before-deadline.png) | ![AUTO FINISH](screenshots/auto-finish.png) |
+| ![REC](screenshots/below-z1.png) | ![Resume](screenshots/resumed-before-deadline.png) | ![AUTO FINISH](screenshots/auto-finish.png) |
 
-| Перерасход отдыха | Возврат по Wakeup | HRV недоступен |
+| Rest overtime | Wakeup foreground | HRV unsupported |
 | --- | --- | --- |
-| ![Перерасход](screenshots/rest-overtime.png) | ![Wakeup](screenshots/wakeup-foreground.png) | ![HRV unsupported](screenshots/hrv-unsupported.png) |
+| ![Overtime](screenshots/rest-overtime.png) | ![Wakeup](screenshots/wakeup-foreground.png) | ![HRV unsupported](screenshots/hrv-unsupported.png) |
 
-## Основания и API
+## Rationale and APIs
 
-- Интервал отдыха остаётся главным ориентиром: универсального пульсового порога
-  готовности после силового подхода нет; для тяжёлых подходов доступны 3–5 минут.
-  См. [систематический обзор](https://pubmed.ncbi.nlm.nih.gov/28933024/) и
-  [метаанализ отдыха и гипертрофии](https://www.frontiersin.org/journals/sports-and-active-living/articles/10.3389/fspor.2024.1429789/full).
-- HRV здесь — короткая PPG wellness-оценка в покое. См.
-  [PPG после силовой нагрузки](https://pmc.ncbi.nlm.nih.gov/articles/PMC7600564/) и
-  [пример HRV-guided протокола](https://pmc.ncbi.nlm.nih.gov/articles/PMC8705715/).
-- Используемые Pebble API:
-  [Heart Rate и HRV](https://developer.repebble.com/guides/events-and-services/hrm/),
-  [WakeupService](https://developer.repebble.com/guides/events-and-services/wakeups/),
-  [Launch Reason](https://developer.repebble.com/docs/c/Foundation/Launch_Reason/).
+Rest duration remains the primary cue; Gym Zones does not infer readiness from
+heart rate. Longer presets are available for heavy sets. See the
+[systematic review](https://pubmed.ncbi.nlm.nih.gov/28933024/) and the
+[rest/hypertrophy meta-analysis](https://www.frontiersin.org/journals/sports-and-active-living/articles/10.3389/fspor.2024.1429789/full).
+The HRV result is a short resting PPG wellness estimate; see the
+[post-resistance PPG study](https://pmc.ncbi.nlm.nih.gov/articles/PMC7600564/)
+and an [HRV-guided protocol example](https://pmc.ncbi.nlm.nih.gov/articles/PMC8705715/).
+Pebble integrations use the official
+[HR/HRV](https://developer.repebble.com/guides/events-and-services/hrm/),
+[WakeupService](https://developer.repebble.com/guides/events-and-services/wakeups/),
+and [Launch Reason](https://developer.repebble.com/docs/c/Foundation/Launch_Reason/)
+APIs.

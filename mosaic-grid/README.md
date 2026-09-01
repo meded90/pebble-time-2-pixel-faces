@@ -1,33 +1,35 @@
 # Mosaic Grid
 
-[Русский](README.md) · [English](README.en.md) · [Все циферблаты](../README.md#нативные-превью-200228)
+**English** · [Русский](README.ru.md) · [All projects](../README.md#project-gallery)
 
 [![Mosaic Grid](../assets/screenshots/mosaic-grid.png)](../assets/screenshots/mosaic-grid.png)
 
-Нативный циферблат для Pebble Time 2 (`emery`, 200×228). Крупные пиксельные
-часы встроены в строгую модернистскую сетку с контрастными цветовыми блоками.
+[Install from RePebble](https://apps.repebble.com/mosaic-grid_d2ccde5d2187490085b44f8e).
 
-## Возможности
+A native Pebble Time 2 watchface (`emery`, 200×228). Large pixel digits sit
+inside a strict modernist grid of contrasting color blocks.
 
-- часы и минуты с поддержкой системного формата 12/24 часа;
-- день недели и число;
-- текущий заряд часов в процентах;
-- полностью автономная работа без телефона и сети;
-- обновление времени раз в минуту и заряда по событию PebbleOS.
+## Features
 
-## Сборка и запуск
+- hours and minutes with the system 12/24-hour preference;
+- weekday and day of month;
+- current watch battery percentage;
+- fully offline operation with no phone connection;
+- minute-based time updates and event-based battery updates.
+
+## Build and run
 
 ```bash
 pebble build
 pebble install --emulator emery --logs
 ```
 
-Готовый пакет: [`../dist/mosaic-grid.pbw`](../dist/mosaic-grid.pbw).
+Published package: [`../dist/published/mosaic-grid-1.0.2.pbw`](../dist/published/mosaic-grid-1.0.2.pbw).
 
-## Разрешения
+## Permissions
 
-Не требуются. Циферблат не использует сеть, геолокацию или Pebble Health.
+None. The watchface does not use networking, location, or Pebble Health.
 
-## Все циферблаты
+## All watchfaces
 
 [Mosaic Grid](../mosaic-grid/) · [Flip Board](../flip-board/) · [Info Tiles](../info-tiles/) · [Codex Weekly](../codex-weekly/) · [Starry Digits](../starry-digits/) · [meded90](../meded90/) · [Zodiac: Aquarius](../zodiac-aquarius/) · [Zodiac: Gemini](../zodiac-gemini/)

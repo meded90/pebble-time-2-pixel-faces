@@ -59,9 +59,10 @@ function configureStatusCheck(minified) {
 
         try {
           var status = JSON.parse(request.responseText);
-          var left = Number(status.weekly && status.weekly.leftPercent);
-          showResult(isFinite(left)
-            ? 'Server: OK — ' + Math.round(left) + '% left.'
+          var daysReceived = Number(status.activity && status.activity.daysReceived);
+          showResult(isFinite(daysReceived)
+            ? 'Server: OK — personal usage: ' + Math.max(0, Math.min(84,
+              Math.round(daysReceived))) + ' of 84 days received.'
             : 'Server: error DATA.');
         } catch (error) {
           showResult('Server: error DATA.');

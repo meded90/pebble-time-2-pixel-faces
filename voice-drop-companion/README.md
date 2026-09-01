@@ -1,27 +1,24 @@
 # Voice Drop mobile bridge
 
-Отдельное PebbleKit-приложение здесь намеренно не используется: оно не получает
-сырые пакеты системного Pebble Protocol endpoint. Вместо этого
-`coredevices-mobileapp.patch` добавляет общий Kotlin Multiplatform-модуль прямо
-в открытое приложение Core Devices; один и тот же код работает на iOS и Android.
+**English** · [Русский](README.ru.md)
 
-Модуль:
+Voice Drop intentionally does not use a separate PebbleKit application because
+it cannot receive raw system Pebble Protocol endpoint packets. Instead,
+`coredevices-mobileapp.patch` adds a shared Kotlin Multiplatform module directly
+to the open-source Core Devices mobile app for iOS and Android.
 
-- слушает endpoint `10001`;
-- при подключении и по 30-минутному сигналу часов начинает pull;
-- подтверждает каждый блок смещением, поэтому повреждённый или переставленный
-  блок не принимается;
-- собирает не более 8 МБ, проверяет CRC32 и число Speex-кадров;
-- вызывает только явно установленный `VoiceDropUploadSink`;
-- отправляет часам ACK удаления лишь после `upload(...) == true`.
+The module:
 
-По умолчанию sink равен `null`: аудио никуда не отправляется, а запись остаётся
-на часах. Приложение-хост должно явно установить
-`VoiceDropUploadSinkRegistry.sink` после того, как пользователь ввёл точный
-HTTPS URL и отдельный device token. Telegram bot token в мобильное приложение
-не передаётся.
+- listens on endpoint `10001`;
+- starts a pull on connection and on the watch's 30-minute signal;
+- acknowledges each block by offset;
+- assembles at most 8 MB and verifies CRC32 and Speex frame count;
+- calls only an explicitly installed `VoiceDropUploadSink`;
+- acknowledges deletion only after `upload(...) == true`.
 
-Применение к upstream:
+The default sink is `null`, so audio stays on the watch. The host app must set
+`VoiceDropUploadSinkRegistry.sink` only after the user provides an exact HTTPS
+URL and separate device token. A Telegram bot token never enters the mobile app.
 
 ```bash
 git clone https://github.com/coredevices/mobileapp.git
@@ -29,6 +26,5 @@ cd mobileapp
 git apply /path/to/voice-drop-companion/coredevices-mobileapp.patch
 ```
 
-Ожидаемый payload для sink доступен как `VoiceDropRecording.toContainer()` и
-принимается сервером `../voice-drop-server` с Content-Type
-`application/x-voice-drop`.
+`VoiceDropRecording.toContainer()` produces the payload accepted by
+[`voice-drop-server`](../voice-drop-server/) as `application/x-voice-drop`.

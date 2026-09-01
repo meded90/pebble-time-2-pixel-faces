@@ -1,0 +1,267 @@
+{
+  "$schema": "./projects.schema.json",
+  "schemaVersion": 1,
+  "projects": [
+    {
+      "id": "mosaic-grid",
+      "name": "Mosaic Grid",
+      "type": "watchface",
+      "buildGroup": "faces",
+      "directory": "mosaic-grid",
+      "sourceVersion": "1.0.2",
+      "platforms": ["emery"],
+      "preview": "assets/screenshots/mosaic-grid.png",
+      "description": {
+        "en": "Large time in a modernist color grid.",
+        "ru": "Крупное время в строгой цветной сетке."
+      },
+      "store": {
+        "status": "published",
+        "publishedVersion": "1.0.2",
+        "url": "https://apps.repebble.com/mosaic-grid_d2ccde5d2187490085b44f8e"
+      },
+      "artifact": {
+        "status": "published",
+        "version": "1.0.2",
+        "path": "dist/published/mosaic-grid-1.0.2.pbw"
+      }
+    },
+    {
+      "id": "flip-board",
+      "name": "Flip Board",
+      "type": "watchface",
+      "buildGroup": "faces",
+      "directory": "flip-board",
+      "sourceVersion": "1.2.1",
+      "platforms": ["emery"],
+      "preview": "assets/screenshots/flip-board.png",
+      "description": {
+        "en": "Configurable mechanical four-panel clock.",
+        "ru": "Настраиваемые механические flip-панели."
+      },
+      "store": {
+        "status": "published",
+        "publishedVersion": "1.2.1",
+        "url": "https://apps.repebble.com/flip-board_d9b87c9f10a74d718db82b06"
+      },
+      "artifact": {
+        "status": "published",
+        "version": "1.2.1",
+        "path": "dist/published/flip-board-1.2.1.pbw"
+      }
+    },
+    {
+      "id": "info-tiles",
+      "name": "Info Tiles",
+      "type": "watchface",
+      "buildGroup": "faces",
+      "directory": "info-tiles",
+      "sourceVersion": "1.0.0",
+      "platforms": ["emery"],
+      "preview": "assets/screenshots/info-tiles.png",
+      "description": {
+        "en": "Time, weather, battery, steps, and heart rate.",
+        "ru": "Время, погода, заряд, шаги и пульс."
+      },
+      "store": {"status": "candidate"},
+      "artifact": {
+        "status": "candidate",
+        "version": "1.0.0",
+        "path": "dist/candidates/info-tiles-1.0.0.pbw"
+      }
+    },
+    {
+      "id": "codex-weekly",
+      "name": "Codex Weekly",
+      "type": "watchface",
+      "buildGroup": "faces",
+      "directory": "codex-weekly",
+      "sourceVersion": "1.0.11",
+      "platforms": ["emery"],
+      "preview": "assets/screenshots/codex-weekly.png",
+      "description": {
+        "en": "Codex quota and personal usage heatmap.",
+        "ru": "Лимит Codex и heatmap личного использования."
+      },
+      "store": {
+        "status": "published",
+        "publishedVersion": "1.0.7",
+        "url": "https://apps.repebble.com/codex-weekly_27f48d86803e471a83b93dfe"
+      },
+      "artifact": {
+        "status": "published",
+        "version": "1.0.7",
+        "path": "dist/published/codex-weekly-1.0.7.pbw"
+      }
+    },
+    {
+      "id": "starry-digits",
+      "name": "Starry Digits",
+      "type": "watchface",
+      "buildGroup": "faces",
+      "directory": "starry-digits",
+      "sourceVersion": "1.1.0",
+      "platforms": ["emery", "gabbro"],
+      "preview": "assets/screenshots/starry-digits.png",
+      "description": {
+        "en": "Hand-drawn digits over a painted night sky; also supports Round 2.",
+        "ru": "Рисованные цифры на ночном небе; поддерживается и Round 2."
+      },
+      "store": {
+        "status": "published",
+        "publishedVersion": "1.1.0",
+        "url": "https://apps.repebble.com/starry-digits_bacf5a80f08845558f44cf65"
+      },
+      "artifact": {
+        "status": "published",
+        "version": "1.1.0",
+        "path": "dist/published/starry-digits-1.1.0.pbw"
+      }
+    },
+    {
+      "id": "meded90",
+      "name": "meded90",
+      "type": "watchface",
+      "buildGroup": "faces",
+      "directory": "meded90",
+      "sourceVersion": "1.0.0",
+      "platforms": ["emery"],
+      "preview": "assets/screenshots/meded90.png",
+      "description": {
+        "en": "Pixel portrait with vertically stacked time.",
+        "ru": "Пиксельный портрет и вертикальное время."
+      },
+      "store": {"status": "candidate"},
+      "artifact": {
+        "status": "candidate",
+        "version": "1.0.0",
+        "path": "dist/candidates/meded90-1.0.0.pbw"
+      }
+    },
+    {
+      "id": "zodiac-aquarius",
+      "name": "Zodiac: Aquarius",
+      "type": "watchface",
+      "buildGroup": "faces",
+      "directory": "zodiac-aquarius",
+      "sourceVersion": "1.3.0",
+      "platforms": ["emery"],
+      "preview": "assets/screenshots/zodiac-aquarius.png",
+      "description": {
+        "en": "Illustrated Aquarius face with vertical time.",
+        "ru": "Иллюстрация Водолея и вертикальное время."
+      },
+      "store": {"status": "candidate"},
+      "artifact": {
+        "status": "candidate",
+        "version": "1.3.0",
+        "path": "dist/candidates/zodiac-aquarius-1.3.0.pbw"
+      }
+    },
+    {
+      "id": "zodiac-gemini",
+      "name": "Zodiac: Gemini",
+      "type": "watchface",
+      "buildGroup": "faces",
+      "directory": "zodiac-gemini",
+      "sourceVersion": "1.4.0",
+      "platforms": ["emery"],
+      "preview": "assets/screenshots/zodiac-gemini.png",
+      "description": {
+        "en": "Illustrated Gemini face with large digital time.",
+        "ru": "Иллюстрация Близнецов и крупное цифровое время."
+      },
+      "store": {
+        "status": "published",
+        "publishedVersion": "1.3.1",
+        "url": "https://apps.repebble.com/zodiac-gemini_a1c61f1227144535accbf53c"
+      },
+      "artifact": {
+        "status": "candidate",
+        "version": "1.4.0",
+        "path": "dist/candidates/zodiac-gemini-1.4.0.pbw"
+      }
+    },
+    {
+      "id": "gym-zones",
+      "name": "Gym Zones",
+      "type": "watchapp",
+      "buildGroup": "standard-apps",
+      "directory": "gym-zones",
+      "sourceVersion": "1.0.0",
+      "platforms": ["emery"],
+      "preview": "gym-zones/screenshots/z3.png",
+      "description": {
+        "en": "Strength workout, rest, HR zones, and one-minute PPG-HRV.",
+        "ru": "Силовая тренировка, отдых, пульсовые зоны и минутный PPG-HRV."
+      },
+      "store": {"status": "candidate"},
+      "artifact": {
+        "status": "candidate",
+        "version": "1.0.0",
+        "path": "dist/candidates/gym-zones-1.0.0.pbw"
+      }
+    },
+    {
+      "id": "wrist-agent",
+      "name": "Wrist Agent",
+      "type": "watchapp",
+      "buildGroup": "standard-apps",
+      "directory": "wrist-agent",
+      "sourceVersion": "1.0.0",
+      "platforms": ["emery"],
+      "preview": "assets/screenshots/wrist-agent.png",
+      "description": {
+        "en": "Voice front end for a privately deployed ChatGPT Workspace Agent bridge.",
+        "ru": "Голосовой frontend для самостоятельно развёрнутого ChatGPT Workspace Agent bridge."
+      },
+      "store": {"status": "candidate"},
+      "artifact": {
+        "status": "candidate",
+        "version": "1.0.0",
+        "path": "dist/candidates/wrist-agent-1.0.0.pbw"
+      }
+    },
+    {
+      "id": "find-my-iphone",
+      "name": "Find My iPhone",
+      "type": "watchapp",
+      "buildGroup": "standard-apps",
+      "directory": "find-my-iphone",
+      "sourceVersion": "0.1.0",
+      "platforms": ["emery"],
+      "preview": "find-my-iphone/assets/emulator-v7-final-scale.png",
+      "description": {
+        "en": "Experimental direct Apple Find My sound request from the paired iPhone.",
+        "ru": "Экспериментальный прямой запрос Apple Find My через подключённый iPhone."
+      },
+      "store": {"status": "candidate"},
+      "artifact": {
+        "status": "candidate",
+        "version": "0.1.0",
+        "path": "dist/candidates/find-my-iphone-0.1.0-emery.pbw"
+      }
+    },
+    {
+      "id": "voice-drop",
+      "name": "Voice Drop",
+      "type": "watchapp",
+      "buildGroup": "patched-apps",
+      "directory": "voice-drop",
+      "sourceVersion": "0.2.0",
+      "platforms": ["emery"],
+      "preview": "assets/screenshots/voice-drop.png",
+      "description": {
+        "en": "On-watch microphone recording with patched firmware and phone bridge.",
+        "ru": "Запись с микрофона часов через пропатченную прошивку и мобильный мост."
+      },
+      "store": {"status": "experimental"},
+      "artifact": {
+        "status": "experimental",
+        "version": "0.1.0",
+        "path": "dist/experimental/voice-drop-prototype-0.1.0.pbw",
+        "note": "Legacy phone-recording prototype; not compatible with the 0.2.0 source."
+      }
+    }
+  ]
+}

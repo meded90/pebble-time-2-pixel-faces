@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.11 — 2026-09-01
+
+- Restored the 84-day Personal Usage heatmap for Cloud Run deployments.
+- Changed the settings server check to report how many daily Personal Usage buckets were received.
+
 ## 1.0.10 — 2026-08-31
 
 - Added direct Russian and English Cloud Run deployment-guide links to the settings page.

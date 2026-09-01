@@ -1,0 +1,13 @@
+{
+  "name": "pebble-time-2-pixel-faces",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "projects:sync": "node scripts/sync-projects.mjs",
+    "projects:check": "node scripts/sync-projects.mjs --check"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

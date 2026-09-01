@@ -40,7 +40,7 @@ Toolchain: Pebble SDK 4.33.1, pebble-tool 5.0.39
 
 ## Release artifact
 
-- Path: `../dist/gym-zones.pbw`
+- Path: `../dist/candidates/gym-zones-1.0.0.pbw`
 - Size: 679614 bytes
 - SHA-256: `c321b1fae53615598f1449e6bb36400bfa242ecb92abf4e0b469f5cbdf70aa17`
 - The release copy is byte-identical to the final clean-build PBW and passes

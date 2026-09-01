@@ -1,34 +1,33 @@
 # Voice Drop for Pebble Time 2
 
-Минималистичный автономный диктофон. Микрофон телефона не используется:
-запись кодируется в Speex на часах и сохраняется во внутренней файловой системе
-PebbleOS. После остановки запись остаётся на часах до подтверждённой доставки.
+**English** · [Русский](README.ru.md)
 
-Интерфейс:
+A minimal standalone voice recorder. It does not use the phone microphone:
+audio is encoded as Speex on the watch and stored in PebbleOS internal storage.
+After recording stops, the file remains on the watch until delivery is
+explicitly acknowledged.
 
-- текущее время в правом верхнем углу;
-- `Select` запускает запись, повторное нажатие останавливает;
-- красный круг и маленький таймер показывают активную запись;
-- в покое отображаются число записей и размер очереди.
+The interface shows the current time, queue size, recording timer, and state.
+Press Select to start and stop recording. The app enters `SAVING` while the
+firmware flushes the final audio chunk and writes the recording metadata last.
+Closing the app during recording uses the same safe finalization path.
 
-После остановки приложение показывает `SAVING`, а прошивка принудительно
-закрывает последний аудиочанк и только затем создаёт метафайл записи. Состояние
-`READY` возвращается лишь после успешного закрытия обоих файлов. Выход из
-приложения во время записи также автоматически запускает это сохранение.
+## Requirements
 
-## Требования
+Public PebbleOS and the public SDK do not expose the microphone to watchapps and
+limit persistent app storage to 4 KB. Voice Drop 0.2.0 therefore requires the
+[`pebbleos.patch`](../voice-drop-firmware/pebbleos.patch) and SDK revision 110
+built from it.
 
-Обычная PebbleOS и публичный SDK не дают watchapp доступ к микрофону и выделяют
-приложению только 4 КБ persistent storage. Поэтому приложение версии `0.2.0`
-собирается только с патчем `../voice-drop-firmware/pebbleos.patch` и созданным из
-него SDK revision 110.
+The firmware queue is limited to 8 MB, approximately 100–110 minutes at
+9.8 kbps. Data is committed in 16 KB chunks. Incomplete chunks are removed
+after power loss while completed recordings remain queued.
 
-Очередь прошивки ограничена 8 МБ — примерно 100–110 минут при 9.8 kbps. Данные
-пишутся чанками по 16 КБ. После обрыва питания незавершённые чанки удаляются, а
-готовые записи остаются в очереди.
+The shared iOS/Android bridge is provided by
+[`coredevices-mobileapp.patch`](../voice-drop-companion/coredevices-mobileapp.patch).
+It uses private Pebble Protocol endpoint `10001`, pulls on reconnection and at
+30-minute signals, and acknowledges deletion only after an explicitly
+configured `VoiceDropUploadSink` succeeds.
 
-Мобильный патч находится в `../voice-drop-companion/coredevices-mobileapp.patch`.
-Он общий для iOS и Android и использует внутренний Pebble Protocol endpoint
-`10001`. Синхронизация инициируется часами каждые 30 минут и при новом
-подключении телефона. ACK удаления отправляется только после `success` от явно
-настроенного `VoiceDropUploadSink`.
+The artifact in `../dist/experimental/` is a legacy 0.1.0 phone-recording
+prototype. It is not a build of this 0.2.0 source.

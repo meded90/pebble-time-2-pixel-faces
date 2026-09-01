@@ -17,7 +17,7 @@
 
 ## Upload files
 
-- PBW: `dist/wrist-agent.pbw`
+- PBW: `dist/candidates/wrist-agent-1.0.0.pbw`
 - 80×80 small icon: `assets/icons/wrist-agent-icon-80.png`
 - 144×144 icon: `assets/icons/wrist-agent-icon-144.png`
 - 512×512 source icon: `assets/icons/wrist-agent-icon-512.png`
@@ -37,7 +37,7 @@ npm test
 ../.venv/bin/pebble build
 unzip -t build/wrist-agent.pbw
 node --check build/pebble-js-app.js
-cp build/wrist-agent.pbw ../dist/wrist-agent.pbw
+cp build/wrist-agent.pbw ../dist/candidates/wrist-agent-1.0.0.pbw
 
 cd ../wrist-agent-server
 npm ci

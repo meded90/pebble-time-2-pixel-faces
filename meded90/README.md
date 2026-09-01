@@ -1,33 +1,33 @@
 # meded90
 
-[Русский](README.md) · [English](README.en.md) · [Все циферблаты](../README.md#нативные-превью-200228)
+**English** · [Русский](README.ru.md) · [All projects](../README.md#project-gallery)
 
 [![meded90](../assets/screenshots/meded90.png)](../assets/screenshots/meded90.png)
 
-Портретный пиксельный циферблат для Pebble Time 2 (`emery`, 200×228). Крупные
-часы и минуты расположены вертикально в свободной области иллюстрации.
+A portrait-based pixel watchface for Pebble Time 2 (`emery`, 200×228). Large
+hours and minutes are stacked vertically in the illustration's open area.
 
-## Возможности
+## Features
 
-- полноэкранный 64-цветный фон в формате PBI;
-- крупные часы и минуты шрифтом Roboto Bold;
-- системный формат времени 12/24 часа;
-- обновление раз в минуту;
-- автономная работа без настроек и сети.
+- full-screen 64-color background stored as PBI;
+- large Roboto Bold hours and minutes;
+- system 12/24-hour preference;
+- updates once per minute;
+- fully offline with no settings.
 
-## Сборка и запуск
+## Build and run
 
 ```bash
 pebble build
 pebble install --emulator emery --logs
 ```
 
-Готовый пакет: [`../dist/meded90.pbw`](../dist/meded90.pbw).
+Release candidate: [`../dist/candidates/meded90-1.0.0.pbw`](../dist/candidates/meded90-1.0.0.pbw).
 
-## Разрешения
+## Permissions
 
-Не требуются.
+None.
 
-## Все циферблаты
+## All watchfaces
 
 [Mosaic Grid](../mosaic-grid/) · [Flip Board](../flip-board/) · [Info Tiles](../info-tiles/) · [Codex Weekly](../codex-weekly/) · [Starry Digits](../starry-digits/) · [meded90](../meded90/) · [Zodiac: Aquarius](../zodiac-aquarius/) · [Zodiac: Gemini](../zodiac-gemini/)

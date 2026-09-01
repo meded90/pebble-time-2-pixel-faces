@@ -35,7 +35,8 @@ assert(cSource.indexOf('#define APP_MESSAGE_ACK_TIMEOUT_MS 3000') !== -1,
 assert(cSource.indexOf('#define RING_FRAME_MS 150') !== -1, 'ringing animation must stay calm and readable');
 assert(cSource.indexOf('s_ring_phase = (s_ring_phase + 1) % 4') !== -1, 'ringing animation must use four wave phases');
 assert(cSource.indexOf('GRect(24, 67, 145, 99)') !== -1, 'foreground canvas must preserve transparent safety padding');
-assert(assetBuilder.indexOf('width: 176, height: 120, padding: 8') !== -1, 'foreground must keep an eight-pixel transparent border');
+assert(assetBuilder.indexOf('width: 145, height: 99, padding: 7') !== -1,
+  'foreground bitmap must match its native layer and retain transparent padding');
 assert(cSource.indexOf('GRect(140, 111, 60, 64)') !== -1, 'ringing waves must originate at the iPhone head');
 assert(assetBuilder.indexOf('foreground-v4-imagegen.png') !== -1, 'foreground must be rebuilt from the approved ImageGen source');
 assert(assetBuilder.indexOf('background-v5-imagegen.png') !== -1, 'background must be rebuilt from the highlighted ImageGen source');

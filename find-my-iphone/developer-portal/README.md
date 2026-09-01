@@ -1,31 +1,32 @@
 # RePebble deployment package
 
-Материалы подготовлены для публикации watchapp `Find My iPhone` на платформе `emery`.
+**English** · [Русский](README.ru.md)
 
-## Обязательные файлы
+Prepared listing materials for the Find My iPhone watchapp on `emery`.
 
-- `icons/icon-48.png` — Small Icon, 48×48;
-- `icons/icon-144.png` — Large Icon, 144×144;
-- `banner/marketing-banner-720x320.png` — обязательный баннер watchapp;
-- `screenshots/emery/*.png` — пять необрамлённых скриншотов 200×228;
-- `release/find-my-iphone-0.1.0-emery.pbw` — бинарник релиза;
-- `description.en.txt` и `release-notes.en.txt` — готовые поля листинга;
-- `metadata.json` — все поля в удобном для переноса виде.
+## Required files
 
-Дополнительно: `icons/menu-icon-25.png`, `icon-80.png`, `icon-512.png`, русские тексты, расширенные `listing.*.md` и общий `store-assets-preview.png`.
+- `icons/icon-48.png` and `icons/icon-144.png`;
+- `banner/marketing-banner-720x320.png`;
+- five native 200×228 screenshots under `screenshots/emery/`;
+- [`../../dist/candidates/find-my-iphone-0.1.0-emery.pbw`](../../dist/candidates/find-my-iphone-0.1.0-emery.pbw);
+- `description.en.txt`, `release-notes.en.txt`, and `metadata.json`.
 
-## Перед публикацией
+Additional assets include menu/store icons, Russian listing copy, expanded
+`listing.*.md` documents, and `store-assets-preview.png`.
 
-1. Укажите support email вместо `TODO` в `metadata.json` или непосредственно в портале.
-2. Проверьте, что URL исходников уже доступен публично: локальные изменения этого проекта пока не публикуются автоматически.
-3. Протестируйте вход, 2FA и реальный вызов звука на физическом iPhone и Pebble Time 2.
-4. Повторно оцените предупреждения из `SECURITY.md`: приложение использует недокументированный Apple API и хранит сессионные токены в `localStorage` Pebble Core, а не в Keychain.
-5. Сначала создайте скрытый/private listing для проверки. Финальное нажатие Publish — отдельное публичное действие и в этот пакет не входит.
+## Before publication
 
-## Пересборка графики
+1. Replace the support-email `TODO` in `metadata.json` or in the portal.
+2. Confirm that the source URL is publicly reachable.
+3. Test sign-in, 2FA, and a real sound request on a physical iPhone and Pebble
+   Time 2.
+4. Review `SECURITY.md`; the app uses an undocumented Apple API and stores
+   session tokens in Pebble Core `localStorage`, not Keychain.
+5. Start with a hidden/private listing. Publishing is a separate public action.
+
+Regenerate store graphics with:
 
 ```sh
 swift tools/build-store-assets.swift
 ```
-
-ImageGen-мастера хранятся в `developer-portal/source/`. Скриншоты получены из точных состояний HTML-прототипа, затем приведены к нативному размеру Emery.

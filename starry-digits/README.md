@@ -1,23 +1,25 @@
 # Starry Digits
 
-[Русский](README.md) · [English](README.en.md) · [Все циферблаты](../README.md#нативные-превью-200228)
+**English** · [Русский](README.ru.md) · [All projects](../README.md#project-gallery)
 
 [![Starry Digits](../assets/screenshots/starry-digits.png)](../assets/screenshots/starry-digits.png)
 
-Художественный циферблат для Pebble Time 2 (`emery`, 200×228) и Pebble Round 2
-(`gabbro`, 260×260): светящиеся рисованные цифры поверх звёздного пиксельного
-неба с вихревыми мазками.
+[Install from RePebble](https://apps.repebble.com/starry-digits_bacf5a80f08845558f44cf65).
 
-## Возможности
+An artistic watchface for Pebble Time 2 (`emery`, 200×228) and Pebble Round 2
+(`gabbro`, 260×260): luminous hand-drawn digits over a pixel-art night sky
+formed from swirling painted strokes.
 
-- собственные растровые изображения всех десяти цифр;
-- отдельные фон и безопасная компоновка для круглого экрана 260×260;
-- вертикальная композиция часов и минут;
-- системный формат времени 12/24 часа;
-- обновление раз в минуту;
-- полностью автономная работа без настроек, телефона и сети.
+## Features
 
-## Сборка и запуск
+- custom bitmap artwork for all ten digits;
+- dedicated background and safe layout for the 260×260 round display;
+- vertically stacked hours and minutes;
+- system 12/24-hour preference;
+- updates once per minute;
+- fully offline with no settings or phone connection.
+
+## Build and run
 
 ```bash
 pebble build
@@ -25,12 +27,12 @@ pebble install --emulator emery --logs
 pebble install --emulator gabbro --logs
 ```
 
-Готовый пакет: [`../dist/starry-digits.pbw`](../dist/starry-digits.pbw).
+Published package: [`../dist/published/starry-digits-1.1.0.pbw`](../dist/published/starry-digits-1.1.0.pbw).
 
-## Разрешения
+## Permissions
 
-Не требуются.
+None.
 
-## Все циферблаты
+## All watchfaces
 
 [Mosaic Grid](../mosaic-grid/) · [Flip Board](../flip-board/) · [Info Tiles](../info-tiles/) · [Codex Weekly](../codex-weekly/) · [Starry Digits](../starry-digits/) · [meded90](../meded90/) · [Zodiac: Aquarius](../zodiac-aquarius/) · [Zodiac: Gemini](../zodiac-gemini/)

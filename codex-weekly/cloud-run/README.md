@@ -1,71 +1,72 @@
-# Codex Weekly в Google Cloud Run
+# Codex Weekly on Google Cloud Run
 
-[English version](README.en.md)
+**English** · [Русский](README.ru.md)
 
-Это пошаговая инструкция для развёртывания **собственного** backend-сервиса
-Codex Weekly. В репозитории нет общего Google Cloud project ID, адреса сервиса,
-имени пользователя или готового секрета. Все облачные ресурсы создаются в
-вашем проекте Google Cloud.
+This guide walks a new user through deploying a **private, user-owned** Codex
+Weekly backend. The repository contains no shared Google Cloud project ID,
+service URL, user name, email address, or ready-made secret. Every cloud
+resource is created in your own Google Cloud project.
 
-Технически это Cloud Run service, а не Cloud Functions: контейнер запускает
-Codex CLI и общается с `codex app-server` через stdio.
+This is a Cloud Run service, not a Cloud Function: the container runs the
+Codex CLI and communicates with `codex app-server` over stdio.
 
-## Что получится
+## What you will deploy
 
 ```text
-PebbleKit JS ── HTTPS + клиентский токен ──> ваш Cloud Run service
+PebbleKit JS ── HTTPS + client token ──> your Cloud Run service
                                                    │
-                                                   ├─ Secret Manager: клиентский токен
-                                                   ├─ Secret Manager: копия Codex auth
+                                                   ├─ Secret Manager: client token
+                                                   ├─ Secret Manager: Codex auth copy
                                                    └─ Codex App Server: account/rateLimits/read
 ```
 
-- `GET /health` публично возвращает состояние контейнера.
-- `GET /status` требует `Authorization: Bearer <token>` и возвращает только
-  нормализованное окно лимита `limitId: "codex"`.
-- При `503` endpoint добавляет безопасный код: `AUTH` (вход Codex истёк),
-  `TIME` (таймаут), `DATA` (нет основного лимита) или `ERR`. Секреты и
-  подробный текст ошибки наружу не передаются.
-- Секреты, история чатов и произвольные методы App Server наружу не выдаются.
-- Cloud Run масштабируется до нуля и ограничен одним экземпляром.
+- `GET /health` publicly reports container readiness.
+- `GET /status` requires `Authorization: Bearer <token>` and returns only the
+  normalized quota window for `limitId: "codex"`.
+- On `503`, the endpoint includes a safe code: `AUTH` (expired Codex login),
+  `TIME` (timeout), `DATA` (no main quota), or `ERR`. It never exposes a
+  secret or the detailed upstream error.
+- The service never exposes credentials, chat history, or arbitrary App Server
+  RPC methods.
+- Cloud Run scales to zero and is limited to one instance.
 
-## Важное ограничение авторизации
+## Important authentication limitation
 
-Метод `account/rateLimits/read` и вход Codex через ChatGPT документированы
-OpenAI. Однако копирование локального `auth.json` в Secret Manager не является
-поддерживаемым облачным OAuth-контрактом. Это добровольный эксперимент:
+OpenAI documents `account/rateLimits/read` and signing into Codex with ChatGPT.
+Copying the local `auth.json` file into Secret Manager is **not** a supported
+cloud OAuth contract. It is an opt-in experiment:
 
-- секрет даёт доступ к подключённому аккаунту ChatGPT;
-- после `codex logout`, нового входа, ротации токена, ответа `401` или
-  несовместимого обновления Codex секрет потребуется загрузить заново;
-- OpenAI может изменить внутренний формат файла;
-- для продукта с несколькими пользователями нужен отдельный поддерживаемый
-  механизм авторизации, а не этот скрипт.
+- the secret grants access to the connected ChatGPT account;
+- you may need to upload it again after `codex logout`, a new login, token
+  rotation, a `401` response, or an incompatible Codex update;
+- OpenAI may change the file's internal format;
+- a multi-user product needs a supported authorization design instead of this
+  script.
 
-Если такой риск неприемлем, используйте локальный
-[bridge](../bridge/server.mjs), который работает с обычным локальным входом
-Codex и не копирует учётные данные в облако.
+If this risk is unacceptable, use the local [bridge](../bridge/server.mjs).
+It uses the normal local Codex session and does not copy credentials to the
+cloud.
 
-Официальные источники:
+Official references:
 
 - [Codex authentication](https://learn.chatgpt.com/docs/auth)
 - [Codex App Server](https://learn.chatgpt.com/docs/app-server)
-- [Cloud Run: развёртывание из исходного кода](https://cloud.google.com/run/docs/deploying-source-code)
-- [Secret Manager: добавление версии секрета](https://cloud.google.com/secret-manager/docs/add-secret-version)
-- [Secret Manager: доступ к версии секрета](https://cloud.google.com/secret-manager/docs/access-secret-version)
+- [Cloud Run: deploy from source](https://cloud.google.com/run/docs/deploying-source-code)
+- [Secret Manager: add a secret version](https://cloud.google.com/secret-manager/docs/add-secret-version)
+- [Secret Manager: access a secret version](https://cloud.google.com/secret-manager/docs/access-secret-version)
 
-## 1. Установите необходимые инструменты
+## 1. Install the prerequisites
 
-Понадобятся:
+You need:
 
-- macOS или Linux с Bash;
-- [Google Cloud CLI](https://cloud.google.com/sdk/docs/install);
-- [Codex CLI](https://learn.chatgpt.com/docs/codex/cli);
-- `openssl`, `curl` и Git;
-- аккаунт Google Cloud с billing account;
-- подписка/рабочая область ChatGPT, в которой доступен Codex.
+- macOS or Linux with Bash;
+- the [Google Cloud CLI](https://cloud.google.com/sdk/docs/install);
+- the [Codex CLI](https://learn.chatgpt.com/docs/codex/cli);
+- `openssl`, `curl`, and Git;
+- a Google Cloud account with a billing account;
+- a ChatGPT subscription/workspace with Codex access.
 
-Проверьте команды:
+Check the commands:
 
 ```bash
 gcloud --version
@@ -74,12 +75,12 @@ openssl version
 curl --version
 ```
 
-Все следующие команды выполняются из корня этого репозитория.
+Run all remaining commands from the root of this repository.
 
-## 2. Выберите собственные параметры
+## 2. Choose your own settings
 
-Google Cloud project ID должен быть глобально уникальным. Замените пример на
-свой ID; не используйте адрес электронной почты или полное имя.
+Google Cloud project IDs are globally unique. Replace the example with your
+own ID; do not use an email address or full personal name.
 
 ```bash
 export GCP_PROJECT_ID="your-unique-codex-weekly-project"
@@ -89,27 +90,27 @@ export CLOUD_RUN_SERVICE_ACCOUNT_NAME="codex-weekly-run"
 export CLOUD_BUILD_SERVICE_ACCOUNT_NAME="codex-weekly-build"
 ```
 
-Скрипты намеренно не задают project ID по умолчанию. Не закрывайте терминал до
-окончания настройки: переменные нужны на следующих шагах.
+The scripts intentionally have no default project ID. Keep this terminal open
+through the setup because later steps use these variables.
 
-## 3. Создайте и настройте Google Cloud project
+## 3. Create and configure the Google Cloud project
 
-Авторизуйтесь:
+Sign in:
 
 ```bash
 gcloud auth login
 gcloud auth list
 ```
 
-Создайте новый проект или убедитесь, что выбранный проект уже существует:
+Create a project, or verify that your chosen project already exists:
 
 ```bash
 gcloud projects create "$GCP_PROJECT_ID" --name="Codex Weekly"
 gcloud config set project "$GCP_PROJECT_ID"
 ```
 
-Если команда сообщает, что проект уже существует, не создавайте его повторно.
-Найдите billing account и подключите его:
+If the project already exists, do not create it again. Find your billing
+account and link it:
 
 ```bash
 gcloud billing accounts list
@@ -118,27 +119,26 @@ gcloud billing projects link "$GCP_PROJECT_ID" \
   --billing-account="$GCP_BILLING_ACCOUNT_ID"
 ```
 
-Создайте budget alert в Google Cloud Console перед развёртыванием. Бесплатные
-лимиты и цены могут меняться, поэтому инструкция не предполагает нулевую
-стоимость.
+Create a budget alert in Google Cloud Console before deployment. Free tiers
+and prices can change, so this guide does not assume zero cost.
 
-## 4. Войдите в Codex через ChatGPT
+## 4. Sign into Codex with ChatGPT
 
-Для персональных лимитов Codex нужен вход через ChatGPT. Авторизация только
-OpenAI API key не предоставляет эти данные App Server.
+Personal Codex limits require ChatGPT-backed authentication. API-key-only
+authentication does not expose this App Server account data.
 
 ```bash
 codex login
 codex login status
 ```
 
-Завершите браузерный вход и убедитесь, что `codex login status` успешен.
+Complete the browser flow and make sure `codex login status` succeeds.
 
-## 5. Загрузите копию Codex auth в Secret Manager
+## 5. Upload a copy of Codex auth to Secret Manager
 
-Прочитайте раздел об ограничениях выше. Скрипт требует явного флага
-подтверждения, читает локальный файл авторизации и передаёт его напрямую в
-Secret Manager. Содержимое не печатается и не сохраняется во временный файл.
+Read the authentication limitation above first. The script requires an
+explicit confirmation flag, reads the local auth file, and sends it directly
+to Secret Manager. It does not print the contents or create a temporary copy.
 
 ```bash
 GCP_PROJECT_ID="$GCP_PROJECT_ID" \
@@ -146,20 +146,20 @@ GCP_PROJECT_ID="$GCP_PROJECT_ID" \
   --confirm-copy-codex-auth
 ```
 
-По умолчанию скрипт читает `${CODEX_HOME}/auth.json`, если задан `CODEX_HOME`,
-иначе `~/.codex/auth.json`. Для нестандартного пути укажите:
+By default, the script reads `${CODEX_HOME}/auth.json` when `CODEX_HOME` is
+set, otherwise `~/.codex/auth.json`. Set an explicit path if needed:
 
 ```bash
 export CODEX_AUTH_FILE="/absolute/path/to/auth.json"
 ```
 
-Скрипт создаёт:
+The script creates:
 
-- service account `codex-weekly-run` (или выбранное вами имя);
-- секрет `codex-weekly-codex-auth`;
-- новую версию секрета с текущей авторизацией.
+- the `codex-weekly-run` service account (or your chosen name);
+- the `codex-weekly-codex-auth` secret;
+- a new secret version containing the current authentication state.
 
-## 6. Разверните Cloud Run service
+## 6. Deploy the Cloud Run service
 
 ```bash
 GCP_PROJECT_ID="$GCP_PROJECT_ID" \
@@ -170,23 +170,22 @@ CLOUD_BUILD_SERVICE_ACCOUNT_NAME="$CLOUD_BUILD_SERVICE_ACCOUNT_NAME" \
   codex-weekly/cloud-run/deploy.sh
 ```
 
-Скрипт:
+The script:
 
-1. проверяет выбранный проект и активный вход `gcloud`;
-2. включает необходимые Google Cloud APIs;
-3. создаёт отдельные runtime и build service accounts, если их ещё нет;
-4. создаёт случайный клиентский токен в `codex-weekly-client-token`;
-5. выдаёт runtime service account доступ только к двум нужным секретам;
-6. собирает контейнер из `codex-weekly/cloud-run`;
-7. разворачивает Cloud Run с `min-instances=0`, `max-instances=1` и
-   `concurrency=1`;
-8. выводит URL `/status`, но не значение токена.
+1. validates the selected project and active `gcloud` login;
+2. enables the required Google Cloud APIs;
+3. creates dedicated runtime and build service accounts when needed;
+4. creates a random client token in `codex-weekly-client-token`;
+5. grants the runtime service account access to only the two required secrets;
+6. builds the container from `codex-weekly/cloud-run`;
+7. deploys with `min-instances=0`, `max-instances=1`, and `concurrency=1`;
+8. prints the `/status` URL without printing the token.
 
-Флаг `--allow-unauthenticated` относится к Google IAM: PebbleKit JS не может
-предъявить Google identity. Сам `/status` всё равно защищён отдельным bearer
-token, который обработчик сравнивает постоянным по времени способом.
+`--allow-unauthenticated` applies to Google IAM because PebbleKit JS cannot
+present a Google identity. The `/status` handler still requires a separate
+bearer token and compares it using a constant-time operation.
 
-## 7. Получите URL и клиентский токен
+## 7. Retrieve the URL and client token
 
 ```bash
 export CODEX_WEEKLY_SERVICE_URL="$(gcloud run services describe \
@@ -200,10 +199,11 @@ export CODEX_WEEKLY_CLIENT_TOKEN="$(gcloud secrets versions access latest \
   --project="$GCP_PROJECT_ID")"
 ```
 
-Не печатайте токен, не добавляйте его в Git, URL, скриншоты, логи или чаты.
-Переменная нужна только для проверки и вставки в настройки PebbleKit.
+Do not print the token or place it in Git, URLs, screenshots, logs, or chats.
+Keep the variable only long enough to test the service and paste it into the
+PebbleKit settings.
 
-## 8. Проверьте сервис
+## 8. Test the service
 
 ```bash
 curl -i "$CODEX_WEEKLY_SERVICE_URL/health"
@@ -213,14 +213,15 @@ curl -i \
   "$CODEX_WEEKLY_SERVICE_URL/status"
 ```
 
-Ожидается:
+Expected results:
 
-- `/health` → `200` и `{"ok":true}`;
-- `/status` без токена → `401`;
-- `/status` с токеном → `200` и JSON с `weekly.leftPercent`,
-  `weekly.windowDurationMins` и `weekly.resetsAt`.
+- `/health` → `200` and `{"ok":true}`;
+- `/status` without a token → `401`;
+- `/status` with the token → `200` and JSON containing
+  `weekly.leftPercent`, `weekly.windowDurationMins`, `weekly.resetsAt`, plus
+  `activity.levels` (84 cells) and `activity.daysReceived`.
 
-Если последний запрос возвращает `503`, посмотрите логи:
+If the authenticated request returns `503`, inspect the logs:
 
 ```bash
 gcloud run services logs read "$CLOUD_RUN_SERVICE_NAME" \
@@ -229,37 +230,35 @@ gcloud run services logs read "$CLOUD_RUN_SERVICE_NAME" \
   --limit=100
 ```
 
-Watchface покажет этот безопасный код рядом с квадратом синхронизации и очистит
-устаревшие значения. `AUTH` означает: снова выполните `codex login`, загрузите
-новую версию auth-секрета шагом 5 и выпустите новую ревизию шагом 6.
+The watchface displays this safe code beside the sync square and clears stale
+quota values. `AUTH` means: run `codex login` again, upload a fresh auth secret
+in step 5, and deploy a new revision in step 6.
 
-## 9. Подключите watchface
+## 9. Connect the watchface
 
-В настройках Codex Weekly на телефоне укажите:
+In the Codex Weekly settings on your phone, enter:
 
 ```text
-Status URL: значение CODEX_WEEKLY_SERVICE_URL + /status
-Cloud Run client token: значение CODEX_WEEKLY_CLIENT_TOKEN
+Status URL: CODEX_WEEKLY_SERVICE_URL followed by /status
+Cloud Run client token: CODEX_WEEKLY_CLIENT_TOKEN
 ```
 
-Нажмите **Save and sync**. Зелёный индикатор означает успешную синхронизацию.
-Красный индикатор означает ошибку URL, токена, авторизации Codex или сервиса.
+Select **Save and sync**. A green indicator means synchronization succeeded.
+A red indicator means the URL, token, Codex authentication, or service failed.
 
-После настройки удалите токен из текущего shell:
+Remove the token from the current shell after setup:
 
 ```bash
 unset CODEX_WEEKLY_CLIENT_TOKEN
 ```
 
-## Обновление и восстановление
+## Updates and recovery
 
-После изменения кода повторно запустите `deploy.sh` с теми же переменными.
-После нового `codex login`, `codex logout`, `401` или истечения авторизации
-снова выполните шаг 5, а затем разверните новую ревизию шагом 6, чтобы новый
-экземпляр гарантированно перечитал секрет.
+After code changes, rerun `deploy.sh` with the same variables. After a new
+`codex login`, `codex logout`, `401`, or expired authentication, repeat step 5
+and then deploy a new revision with step 6 so a new instance reads the secret.
 
-Если нужно сменить клиентский токен, добавьте новую версию секрета и снова
-разверните сервис:
+To rotate the client token, add a new secret version and redeploy:
 
 ```bash
 openssl rand -base64 48 | tr -d '\n' | \
@@ -272,11 +271,11 @@ CLOUD_RUN_REGION="$CLOUD_RUN_REGION" \
   codex-weekly/cloud-run/deploy.sh
 ```
 
-После ротации обновите токен в настройках watchface.
+Update the watchface settings after rotation.
 
-## Удаление ресурсов
+## Remove the resources
 
-Удалите только ресурсы, созданные для Codex Weekly:
+Delete only the resources created for Codex Weekly:
 
 ```bash
 gcloud run services delete "$CLOUD_RUN_SERVICE_NAME" \
@@ -295,7 +294,7 @@ gcloud iam service-accounts delete \
   --project="$GCP_PROJECT_ID"
 ```
 
-Удаляйте весь проект только если уверены, что в нём нет других ресурсов:
+Delete the whole project only when it contains no unrelated resources:
 
 ```bash
 gcloud projects delete "$GCP_PROJECT_ID"

@@ -1,100 +1,38 @@
 # Wrist Agent Server
 
-[Русский](README.md) · [English](README.en.md)
+**English** · [Русский](README.ru.md)
 
-Приватный HTTPS bridge между PebbleKit JS и опубликованным ChatGPT Workspace
-Agent. Он запускает агента, отслеживает только статус run и принимает короткий
-ответ через MCP tool `send_to_pebble`.
+Private HTTPS bridge between PebbleKit JS and a published ChatGPT Workspace
+Agent. It triggers the agent, polls run status, and receives a compact result
+through the `send_to_pebble` MCP tool.
 
-Такой callback обязателен: Workspace Agents API сейчас возвращает `202`, URL
-разговора и опциональный beta run ID, но не позволяет получить текст ответа.
-См. [официальный trigger API](https://developers.openai.com/workspace-agents/trigger-runs).
+The callback is required because the Workspace Agents API currently returns an
+accepted event, conversation URL, and optional beta run ID, but not the agent's
+response text. See the official [trigger-runs documentation](https://developers.openai.com/workspace-agents/trigger-runs).
 
-## Поток данных
+## Setup
 
-```text
-Pebble Dictation -> PebbleKit JS -> POST /v1/requests
-                                      |
-                                      v
-                         Workspace Agent API channel
-                                      |
-                         apps / connectors / web / MCP
-                                      |
-                  send_to_pebble(request capability)
-                                      |
-                         GET /v1/requests/:id -> часы
-```
+1. Ask a workspace administrator to enable Workspace Agents and access tokens.
+2. Create an agent, attach only the required apps/connectors, and add
+   [`AGENT_INSTRUCTIONS.md`](AGENT_INSTRUCTIONS.md).
+3. Publish its API channel and copy the stable `agtch_...` ID.
+4. Create a Workspace Agent access token as described in the official
+   [authentication guide](https://developers.openai.com/workspace-agents/authentication).
+5. Copy `.env.example` to `.env`, generate independent device-token and
+   capability-pepper secrets, and fill every required value.
+6. Run `npm ci && npm run check && npm test`.
+7. Choose either the managed Cloud Functions Gen 2 deployment or one Docker
+   replica behind HTTPS with a persistent `/app/data` volume.
+8. In ChatGPT developer mode, connect the resulting MCP URL, verify the
+   `send_to_pebble` tool, attach the private plugin to the agent, and republish
+   the API channel. Follow [Connect and test your plugin](https://developers.openai.com/plugins/deploy/connect-chatgpt).
 
-OpenAI-токен хранится только на сервере. Телефон знает URL bridge и отдельный
-device token. `/mcp` принимает одноразовую capability конкретного запроса.
+## Deploy on Cloud Functions Gen 2
 
-## 1. Подготовить Workspace Agent
-
-1. Администратор workspace включает Workspace Agents и выдачу access tokens.
-2. Создайте агента и подключите только необходимые apps/connectors. Для начала
-   безопаснее дать календарю и файлам read-only доступ.
-3. Добавьте текст из [`AGENT_INSTRUCTIONS.md`](AGENT_INSTRUCTIONS.md) в
-   инструкции агента.
-4. Опубликуйте API channel и сохраните стабильный ID вида `agtch_...`.
-5. Создайте Workspace Agent access token с нужным scope. Это не обычный OpenAI
-   API key. Подробности: [официальная authentication guide](https://developers.openai.com/workspace-agents/authentication).
-
-## 2. Создать конфигурацию
-
-```bash
-cd wrist-agent-server
-cp .env.example .env
-openssl rand -base64 32  # device token
-openssl rand -base64 48  # independent capability pepper
-```
-
-Заполните `.env`:
-
-```dotenv
-PUBLIC_BASE_URL=https://agent.example.com
-WRIST_AGENT_DEVICE_TOKENS=<случайный device token>
-CALLBACK_CAPABILITY_PEPPER=<другая случайная строка>
-WORKSPACE_AGENT_TRIGGER_ID=agtch_...
-WORKSPACE_AGENT_ACCESS_TOKEN=<workspace agent access token>
-```
-
-Значения из `.env.example` намеренно считаются невалидными: server завершится
-с ошибкой, пока каждый placeholder не заменён реальным секретом или URL.
-
-Не кладите секреты в URL, PBW, Git или настройки агента.
-
-## 3. Проверить локально
-
-```bash
-npm ci
-npm run check
-npm test
-```
-
-Тесты поднимают loopback HTTP server, выполняют настоящий Streamable HTTP MCP
-handshake, проверяют idempotency, callback capability и двухэтапное подтверждение.
-
-Запуск для разработки:
-
-```bash
-PUBLIC_BASE_URL=http://localhost:8787 npm start
-curl http://localhost:8787/healthz
-npx @modelcontextprotocol/inspector@latest
-```
-
-В Inspector выберите Streamable HTTP и URL `http://localhost:8787/mcp`.
-`npm start` загружает остальные значения из локального `.env` через встроенный
-Node `--env-file`.
-
-## 4. Развернуть
-
-### Google Cloud Functions Gen 2 (рекомендуемый serverless-вариант)
-
-Этот вариант устойчив к cold start и нескольким function instances: запросы,
-идемпотентность и trigger lease хранятся в Firestore, а все секреты — в Secret
-Manager. Один скрипт включает API, при явном согласии создаёт Firestore,
-создаёт runtime service account, секреты и TTL, затем deploy-ит функцию и
-проверяет health endpoints.
+The recommended serverless option persists requests, idempotency, and trigger
+leases in Firestore, while Secret Manager holds the Workspace Agent token,
+Pebble device token, and callback pepper. One script configures the required
+GCP resources and verifies the deployment:
 
 ```bash
 ./scripts/deploy-google-cloud-function.sh \
@@ -106,93 +44,55 @@ Manager. Один скрипт включает API, при явном согл�
   --print-device-token
 ```
 
-Скрипт скроет ввод Workspace Agent token и напечатает `MCP_URL`; device token
-показывается только по явному `--print-device-token` в интерактивном
-терминале. Полная инструкция, IAM-предпосылки, безопасный CI-вариант,
-ротация и ограничения описаны в
-[GCP_FUNCTIONS.md](GCP_FUNCTIONS.md). После deployment всё равно вручную
-создайте private MCP connection в ChatGPT, прикрепите её к агенту и
-перепубликуйте API channel.
+It accepts the Workspace Agent token through hidden terminal input and prints
+`MCP_URL`; the device token is printed only with explicit
+`--print-device-token` in an interactive terminal. Read
+[GCP_FUNCTIONS.en.md](GCP_FUNCTIONS.en.md) before running it: Firestore
+location is permanent, the guide documents required IAM, safe CI input,
+rotation, and the manual ChatGPT connection step.
 
-### Docker / один постоянный сервер
-
-Нужен стабильный публичный HTTPS URL. Самый простой вариант — один Docker
-instance с persistent volume:
+## Deploy one Docker replica
 
 ```bash
 docker compose up --build -d
-```
-
-Compose публикует порт `8787` только на `127.0.0.1`; поставьте на том же host
-HTTPS reverse proxy. Для proxy в другом контейнере замените host-port на общую
-private Docker network и не открывайте plaintext port наружу. Volume `/app/data`
-обязателен для восстановления идемпотентных
-запросов после рестарта. Не запускайте несколько replicas с файловым store;
-для горизонтального масштабирования нужен PostgreSQL/managed database.
-
-После deployment:
-
-```bash
-curl https://agent.example.com/healthz
+curl https://YOUR-HOST/healthz
 npx @modelcontextprotocol/inspector@latest
 ```
 
-Повторно проверьте `https://agent.example.com/mcp` через Inspector.
-Bridge также ограничивает частоту `/mcp`; лимит настраивается через
-`MCP_RATE_LIMIT_PER_MINUTE`.
+Use the Inspector's Streamable HTTP mode with `https://YOUR-HOST/mcp`.
 
-## 5. Подключить MCP к агенту
+The example values intentionally fail validation until every placeholder is
+replaced. `npm start` loads the local `.env` with Node's built-in `--env-file`.
+Compose binds plaintext port 8787 to host loopback only; terminate HTTPS on the
+same host. If the reverse proxy is another container, use a shared private
+Docker network instead of exposing the plaintext port.
 
-1. В ChatGPT включите Developer mode, если это разрешено политикой workspace.
-2. Создайте private plugin/connection с URL
-   `https://agent.example.com/mcp`.
-3. Проверьте, что найден tool `send_to_pebble` и его annotations.
-4. Добавьте plugin к Workspace Agent, затем перепубликуйте API channel.
-5. Выполните тестовый read-only запрос с часов и убедитесь, что callback вернул
-   ответ. После этого отдельно проверьте сценарий `needs_confirmation`.
+## Security and persistence
 
-Официальный порядок подключения: [Connect and test your plugin](https://developers.openai.com/plugins/deploy/connect-chatgpt).
-Для public OpenAI plugin требуется другой auth boundary с OAuth 2.1; см.
-[MCP authentication](https://developers.openai.com/plugins/build/auth).
+The Workspace Agent token never leaves the server. Phone requests use a
+separate bearer token. MCP callbacks use expiring per-request capabilities;
+plaintext capabilities are not stored after the upstream trigger is accepted.
+Files are written with mode `0600` and atomic rename.
 
-## API телефона
+Accepted dictation is retained only while a trigger is pending or retryable.
+Compact status and result records are kept for 24 hours by default. Run a
+single replica with the included file store; use a transactional database for
+multiple replicas. Read [`SECURITY.md`](SECURITY.md) before enabling write tools.
 
-### `POST /v1/requests`
+This private capability pattern is not a substitute for OAuth in a public,
+multi-tenant OpenAI plugin. Current public-plugin authentication expectations
+are documented in [MCP authentication](https://developers.openai.com/plugins/build/auth).
 
-```http
-Authorization: Bearer <device token>
-Idempotency-Key: pebble-...
-Content-Type: application/json
-```
+## Endpoints
 
-```json
-{
-  "command": "Создай напоминание завтра в 15:00",
-  "utcOffsetMinutes": 240,
-  "source": "pebble-time-2"
-}
-```
+- `GET /healthz`, `GET /readyz`
+- `POST /v1/requests` with device bearer token and `Idempotency-Key`
+- `GET /v1/requests/:id`
+- `POST /v1/requests/:id/decision` with `approve` or `reject`
+- `POST /mcp` using stateless Streamable HTTP
 
-### `GET /v1/requests/:id`
+An upstream `suspended` run cannot currently be resumed through the documented
+Workspace Agents API. The watch therefore asks the user to open ChatGPT.
 
-Возвращает `queued`, `in_progress`, `needs_attention`, `completed`, `failed`
-или `expired`, короткий ответ и action summary. Upstream `suspended` нельзя
-возобновить через документированный API: часы просят открыть conversation в
-ChatGPT.
-
-### `POST /v1/requests/:id/decision`
-
-```json
-{ "decision": "approve" }
-```
-
-или `reject`. Обе операции требуют нового `Idempotency-Key`.
-
-## Ограничения
-
-- Voice audio обрабатывает настроенная Pebble/Core Devices dictation-служба;
-  watchapp получает только принятую транскрипцию.
-- Ответ зависит от доступности телефона, bridge, Workspace Agent и connectors.
-- Live E2E нельзя доказать без реального опубликованного `agtch_...`, workspace
-  access token и публичного HTTPS MCP endpoint.
-- Политика двухэтапного подтверждения описана в [`SECURITY.md`](SECURITY.md).
+Live end-to-end validation still requires a real published API channel,
+Workspace Agent access token, public HTTPS MCP endpoint, and connected apps.

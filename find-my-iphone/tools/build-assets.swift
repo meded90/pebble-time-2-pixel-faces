@@ -435,7 +435,10 @@ for (name, column, row, width, height, palette) in specs {
 
 let foregroundPalette = phonePalette + cushionPalette
 let foreground = quantize(
-  fitWithPadding(foregroundSource, width: 176, height: 120, padding: 8),
+  // BitmapLayer clips pixels outside its frame; it does not scale a bitmap.
+  // Generate the foreground at the exact 145x99 frame used by main.c so the
+  // complete cushion and phone are proportionally reduced instead of cropped.
+  fitWithPadding(foregroundSource, width: 145, height: 99, padding: 7),
   transparent: true,
   palette: foregroundPalette
 )

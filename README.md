@@ -1,50 +1,56 @@
 # Pebble Time 2 Pixel Faces
 
-[Русский](README.md) · [English](README.en.md)
+**English** · [Русский](README.ru.md)
 
-Также в репозитории есть три отдельных watchapp-приложения:
-[`gym-zones`](gym-zones/) для силовых тренировок, пульсовых зон, отдыха и
-одно­минутного PPG-HRV; [`wrist-agent`](wrist-agent/) — голосовой frontend для
-ChatGPT Workspace Agent с private bridge и MCP callback; а также `voice-drop`,
-которое пишет звук микрофоном Pebble Time 2, а не телефоном. Для него нужны патч
-PebbleOS, общий iOS/Android-мост в приложении Core Devices и небольшой Telegram
-сервер. Начните с [`voice-drop/README.md`](voice-drop/README.md), затем смотрите
-[`voice-drop-firmware/README.md`](voice-drop-firmware/README.md) и
-[`voice-drop-companion/README.md`](voice-drop-companion/README.md).
+A collection of native Pebble Time 2 projects for the `emery` platform
+(200×228, 64 colors): eight watchfaces and four watchapps. Every project has
+its own UUID, version, source directory, and independently built `.pbw` package.
 
-Основная подборка включает восемь самостоятельных watchface-приложений для
-Pebble Time 2 (`emery`,
-200×228, 64 цвета), созданные по выделенным референсам:
+<!-- projects:catalog:start -->
+## Project gallery
 
-1. [Mosaic Grid](mosaic-grid/) — крупные часы и строгая цветовая сетка.
-2. [Flip Board](flip-board/) — тёмное механическое табло с четырьмя flip-панелями.
-3. [Info Tiles](info-tiles/) — время, дата, заряд, погода, пульс и шаги.
-4. [Codex Weekly](codex-weekly/) — крупные часы, недельный лимит Codex и heatmap личного
-   использования.
-5. [Starry Digits](starry-digits/) — рукописные бело-голубые цифры на живописном звёздном
-   фоне с вихревыми масляными мазками.
-6. [meded90](meded90/) — пиксельный портрет в красном пиджаке и вертикальные часы,
-   размещённые в свободной области фона.
-7. [Zodiac: Aquarius](zodiac-aquarius/) — иллюстрация Водолея и вертикальные часы.
-8. [Zodiac: Gemini](zodiac-gemini/) — иллюстрация Близнецов и крупные часы.
-
-## Нативные превью 200×228
+### Watchfaces
 
 | [Mosaic Grid](mosaic-grid/) | [Flip Board](flip-board/) | [Info Tiles](info-tiles/) | [Codex Weekly](codex-weekly/) |
 | --- | --- | --- | --- |
 | [![Mosaic Grid](assets/screenshots/mosaic-grid.png)](mosaic-grid/) | [![Flip Board](assets/screenshots/flip-board.png)](flip-board/) | [![Info Tiles](assets/screenshots/info-tiles.png)](info-tiles/) | [![Codex Weekly](assets/screenshots/codex-weekly.png)](codex-weekly/) |
+| [Install from RePebble](https://apps.repebble.com/mosaic-grid_d2ccde5d2187490085b44f8e) | [Install from RePebble](https://apps.repebble.com/flip-board_d9b87c9f10a74d718db82b06) | Release candidate · Not published | [Install from RePebble](https://apps.repebble.com/codex-weekly_27f48d86803e471a83b93dfe) |
 
 | [Starry Digits](starry-digits/) | [meded90](meded90/) | [Zodiac: Aquarius](zodiac-aquarius/) | [Zodiac: Gemini](zodiac-gemini/) |
 | --- | --- | --- | --- |
 | [![Starry Digits](assets/screenshots/starry-digits.png)](starry-digits/) | [![meded90](assets/screenshots/meded90.png)](meded90/) | [![Zodiac: Aquarius](assets/screenshots/zodiac-aquarius.png)](zodiac-aquarius/) | [![Zodiac: Gemini](assets/screenshots/zodiac-gemini.png)](zodiac-gemini/) |
+| [Install from RePebble](https://apps.repebble.com/starry-digits_bacf5a80f08845558f44cf65) | Release candidate · Not published | Release candidate · Not published | [Install from RePebble](https://apps.repebble.com/zodiac-gemini_a1c61f1227144535accbf53c) |
 
-Каждая папка является отдельным Pebble-проектом со своим UUID и собирается в
-отдельный `.pbw`. Это важно: в Appstore они публикуются как восемь отдельных
-карточки.
+### Watchapps
 
-## Быстрый старт
+| [Gym Zones](gym-zones/) | [Wrist Agent](wrist-agent/) | [Find My iPhone](find-my-iphone/) | [Voice Drop](voice-drop/) |
+| --- | --- | --- | --- |
+| [![Gym Zones](gym-zones/screenshots/z3.png)](gym-zones/) | [![Wrist Agent](assets/screenshots/wrist-agent.png)](wrist-agent/) | [![Find My iPhone](find-my-iphone/assets/emulator-v7-final-scale.png)](find-my-iphone/) | [![Voice Drop](assets/screenshots/voice-drop.png)](voice-drop/) |
+| Release candidate · Not published | Release candidate · Not published | Release candidate · Not published | Experimental · Not published |
 
-Установите Pebble CLI и SDK:
+“Not published” means that the repository contains source code or a release candidate, but no verified public Appstore page. It does not mean the project has passed final hardware or service validation.
+
+## What each project does
+
+| Project | Type | Source version | Purpose |
+| --- | --- | --- | --- |
+| [Mosaic Grid](mosaic-grid/) | Watchface | 1.0.2 | Large time in a modernist color grid. |
+| [Flip Board](flip-board/) | Watchface | 1.2.1 | Configurable mechanical four-panel clock. |
+| [Info Tiles](info-tiles/) | Watchface | 1.0.0 | Time, weather, battery, steps, and heart rate. |
+| [Codex Weekly](codex-weekly/) | Watchface | 1.0.11 | Codex quota and personal usage heatmap. |
+| [Starry Digits](starry-digits/) | Watchface | 1.1.0 | Hand-drawn digits over a painted night sky; also supports Round 2. |
+| [meded90](meded90/) | Watchface | 1.0.0 | Pixel portrait with vertically stacked time. |
+| [Zodiac: Aquarius](zodiac-aquarius/) | Watchface | 1.3.0 | Illustrated Aquarius face with vertical time. |
+| [Zodiac: Gemini](zodiac-gemini/) | Watchface | 1.4.0 | Illustrated Gemini face with large digital time. |
+| [Gym Zones](gym-zones/) | Watchapp | 1.0.0 | Strength workout, rest, HR zones, and one-minute PPG-HRV. |
+| [Wrist Agent](wrist-agent/) | Watchapp | 1.0.0 | Voice front end for a privately deployed ChatGPT Workspace Agent bridge. |
+| [Find My iPhone](find-my-iphone/) | Watchapp | 0.1.0 | Experimental direct Apple Find My sound request from the paired iPhone. |
+| [Voice Drop](voice-drop/) | Watchapp | 0.2.0 | On-watch microphone recording with patched firmware and phone bridge. |
+<!-- projects:catalog:end -->
+
+## Quick start
+
+Install the Pebble CLI and SDK:
 
 ```bash
 brew install node libpng uv
@@ -52,174 +58,84 @@ uv tool install pebble-tool
 pebble sdk install latest
 ```
 
-Соберите все восемь проектов:
+Build the eight watchfaces:
 
 ```bash
 make build
 ```
 
-Watchapp `gym-zones` собирается отдельно SDK 4.33.1:
+Build a standard watchapp individually:
 
 ```bash
 make gym-zones PEBBLE="$PWD/.venv/bin/pebble"
-```
-
-Wrist Agent использует тот же публичный SDK, а server bridge проверяется
-отдельно:
-
-```bash
 make wrist-agent PEBBLE="$PWD/.venv/bin/pebble"
-npm --prefix wrist-agent-server test
+make find-my-iphone PEBBLE="$PWD/.venv/bin/pebble"
 ```
 
-Проверенная сборка приложения находится в `dist/gym-zones.pbw`; скриншоты,
-управление и границы аппаратной проверки описаны в
-[`gym-zones/README.md`](gym-zones/README.md) и
-[`gym-zones/VALIDATION.md`](gym-zones/VALIDATION.md).
+`make standard-apps` builds those three applications. `make apps` additionally
+attempts Voice Drop, which requires the patched PebbleOS SDK documented in
+[`voice-drop/README.md`](voice-drop/README.md).
 
-Общий `make apps` последовательно собирает и `voice-drop`, которому нужен другой,
-специально пропатченный SDK, описанный в его README. Поэтому для проверки только
-Gym Zones или Wrist Agent используйте отдельные цели выше.
+Audited release copies are kept in [`dist/`](dist/). A package being present
+there does not by itself mean that the corresponding app is publicly released.
+The artifact in `dist/experimental/voice-drop-prototype-0.1.0.pbw` is not
+compatible with the current Voice Drop 0.2.0 source and should not be installed
+as that version.
 
-Готовые пакеты появятся внутри:
+## Run in an emulator
 
-```text
-mosaic-grid/build/*.pbw
-flip-board/build/*.pbw
-info-tiles/build/*.pbw
-codex-weekly/build/*.pbw
-starry-digits/build/*.pbw
-meded90/build/*.pbw
-zodiac-aquarius/build/*.pbw
-zodiac-gemini/build/*.pbw
-wrist-agent/build/*.pbw
-```
-
-## Локальная разработка и тестирование
-
-Встроенного веб-сервера у Pebble-проектов нет. Роль dev server выполняет
-эмулятор из Pebble SDK: CLI собирает watchface, запускает Pebble Time 2
-(`emery`) и устанавливает в него свежий `.pbw`.
-
-Дополнительно, как альтернативу SDK-эмулятору для тестирования, можно использовать
-[pebble-qemu-wasm](https://github.com/ericmigi/pebble-qemu-wasm) — эмулятор Pebble
-на WebAssembly с выводом экрана прямо в браузере. Доступно
-[онлайн-демо](https://ericmigi.github.io/pebble-qemu-wasm/), а инструкции по
-локальному запуску находятся в README проекта. Такой вариант удобен для
-визуальной и интерактивной проверки, в том числе через плагин «Браузер» в Codex:
-можно видеть результат, нажимать кнопки часов мышью или клавиатурой,
-прокликивать меню и проверять корректность поведения интерфейса.
-Это дополнительный способ проверки, не заменяющий финальный тест на часах.
-
-Проверьте, что CLI и SDK доступны:
-
-```bash
-pebble --version
-pebble sdk list
-```
-
-Запустите один из watchface, например `mosaic-grid`:
-
-```bash
-cd mosaic-grid
-pebble build
-pebble install --emulator emery --logs
-```
-
-Откроется окно эмулятора, а в терминале появятся логи приложения. Чтобы
-проверить изменения в коде, остановите вывод логов через `Ctrl+C`, снова
-соберите проект и переустановите его в уже запущенный эмулятор:
+From any project directory:
 
 ```bash
 pebble build
 pebble install --emulator emery --logs
 ```
 
-Для запуска другого watchface перейдите из корня репозитория в
-любую другую папку циферблата и выполните те же две команды.
-
-Полезные команды для проверки состояний:
+Useful state checks:
 
 ```bash
-# Переключить формат времени
 pebble emu-time-format --emulator emery --format 12h
-pebble emu-time-format --emulator emery --format 24h
-
-# Проверить уровни заряда
 pebble emu-battery --emulator emery --percent 9
-pebble emu-battery --emulator emery --percent 100 --charging
-
-# Данные Pebble Health для info-tiles
 pebble emu-steps --emulator emery 12345
 pebble emu-heart-rate --emulator emery 72
-
-# Сохранить скриншот текущего экрана
 pebble screenshot --emulator emery screenshot.png
 ```
 
-Если эмулятор завис, показывает старую сборку или пустой экран, сбросьте его и
-установите watchface заново:
+If the emulator is stale, run `pebble kill`, `pebble wipe`, rebuild, and
+reinstall. You can also use
+[pebble-qemu-wasm](https://github.com/ericmigi/pebble-qemu-wasm) and its
+[live browser demo](https://ericmigi.github.io/pebble-qemu-wasm/) for additional
+visual and interaction checks. Browser emulation does not replace final testing
+on physical hardware.
 
-```bash
-pebble kill
-pebble wipe
-pebble build
-pebble install --emulator emery --logs
-```
+## Published on RePebble
 
-`pebble wipe` удаляет данные эмулятора, но не исходники проекта.
+<!-- projects:published:start -->
+- [Mosaic Grid](https://apps.repebble.com/mosaic-grid_d2ccde5d2187490085b44f8e) — 1.0.2
+- [Flip Board](https://apps.repebble.com/flip-board_d9b87c9f10a74d718db82b06) — 1.2.1
+- [Codex Weekly](https://apps.repebble.com/codex-weekly_27f48d86803e471a83b93dfe) — 1.0.7
+- [Starry Digits](https://apps.repebble.com/starry-digits_bacf5a80f08845558f44cf65) — 1.1.0
+- [Zodiac: Gemini](https://apps.repebble.com/zodiac-gemini_a1c61f1227144535accbf53c) — 1.3.1
+<!-- projects:published:end -->
 
-Проверенные релизные копии уже собраны в `dist/`:
+See [MARKETPLACE_RU.md](MARKETPLACE_RU.md) for the publishing workflow and
+[STORE_LISTINGS.md](STORE_LISTINGS.md) for listing drafts. Public links are
+added only after the Appstore page has been verified.
 
-```text
-dist/mosaic-grid.pbw
-dist/flip-board.pbw
-dist/info-tiles.pbw
-dist/codex-weekly.pbw
-dist/starry-digits.pbw
-dist/meded90.pbw
-dist/zodiac-aquarius.pbw
-dist/zodiac-gemini.pbw
-dist/gym-zones.pbw
-dist/voice-drop.pbw
-dist/wrist-agent.pbw
-```
+## Repository conventions
 
-`dist/voice-drop.pbw` относится к старому прототипу с записью через телефон.
-Версия `0.2.0` требует SDK revision 110 из пропатченной PebbleOS; до такой сборки
-старый PBW не следует устанавливать.
+- [`README.md`](README.md) is the canonical English overview;
+  [`README.ru.md`](README.ru.md) is its Russian translation.
+- Each Pebble project is isolated in its own directory and keeps a stable UUID.
+- Generated `build/` directories and dependencies are ignored; selected release
+  packages and visual assets are versioned deliberately.
+- Project-specific requirements, privacy boundaries, and validation notes live
+  next to the corresponding source code.
+- Voice Drop, Wrist Agent, Codex Weekly, and Find My iPhone depend on external or
+  experimental components; read their project documentation before installing.
+- See [CONTRIBUTING.md](CONTRIBUTING.md) before adding a project or release
+  artifact.
 
-Установка на Pebble Time 2 через новый Pebble mobile app:
+## License
 
-```bash
-pebble login
-cd mosaic-grid
-pebble install --cloudpebble
-```
-
-Для остальных циферблатов повторите команду из их каталогов.
-
-Подробный процесс публикации: [MARKETPLACE_RU.md](MARKETPLACE_RU.md).
-Готовые тексты карточек: [STORE_LISTINGS.md](STORE_LISTINGS.md).
-
-## Особенности
-
-- Циферблаты рассчитаны нативно на 200×228, а не запускаются в bezel mode.
-- Время обновляется раз в минуту, заряд — по событию Battery State Service;
-  в `flip-board` изменившиеся карточки механически переворачиваются через
-  центральный шарнир.
-- `flip-board` позволяет выбрать готовую цветовую тему или вручную настроить
-  цвета фона, линий и цифр через мобильное приложение Pebble.
-- `info-tiles` использует Pebble Health для шагов и пульса.
-- `info-tiles` запрашивает GPS телефона и текущую погоду у Open‑Meteo каждые
-  30 минут; API-ключ не требуется.
-- `codex-weekly` получает недельный лимит и 12-недельную heatmap через
-  локальный Codex bridge; инструкция по безопасному подключению находится в
-  [`codex-weekly/README.md`](codex-weekly/README.md).
-- При недоступных Health/GPS/сети интерфейс показывает `--`, не падает.
-
-## Перед публикацией
-
-В каждом `package.json` проверьте поле `author`. UUID уже уникальны — после
-публикации их нельзя менять, иначе Appstore воспримет сборку как новое
-приложение.
+See [LICENSE](LICENSE).

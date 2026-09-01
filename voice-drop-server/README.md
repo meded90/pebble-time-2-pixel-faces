@@ -1,31 +1,31 @@
 # Voice Drop server
 
-Сервер принимает контейнеры `application/x-voice-drop`, проверяет CRC32,
-собирает исходный Speex/Ogg, перекодирует его в Ogg/Opus и вызывает Telegram
-Bot API `sendVoice`. Ответ `2xx` возвращается только после подтверждения
-Telegram; поэтому мобильный мост может безопасно подтвердить удаление записи с
-часов.
+**English** · [Русский](README.ru.md)
 
-## Настройка
+The server accepts `application/x-voice-drop` containers, verifies CRC32,
+reconstructs Speex/Ogg, transcodes it to Ogg/Opus, and calls the Telegram Bot API
+`sendVoice`. It returns `2xx` only after Telegram confirms delivery, allowing the
+mobile bridge to acknowledge deletion safely.
 
-1. Создайте Telegram-бота через BotFather и добавьте его в приватную группу или
-   канал с правом публикации.
-2. Скопируйте `.env.example` в защищённые переменные вашего хостинга.
-3. Сгенерируйте отдельный длинный `VOICE_DROP_DEVICE_TOKENS`. Это не Telegram
-   bot token: на телефоне должен храниться только этот ограниченный токен.
-4. Публикуйте сервер только через HTTPS. Для Docker достаточно прокси Caddy,
-   Nginx или Cloudflare Tunnel перед портом `8787`.
+## Setup
+
+1. Create a Telegram bot through BotFather and add it to a private group or
+   channel with permission to post.
+2. Copy `.env.example` into your hosting provider's protected variables.
+3. Generate a separate long `VOICE_DROP_DEVICE_TOKENS` value. The phone stores
+   this restricted token, never the Telegram bot token.
+4. Publish the server only over HTTPS.
 
 ```bash
 docker build -t voice-drop-server .
 docker run --env-file .env -v voice-drop-data:/data -p 8787:8787 voice-drop-server
 ```
 
-Проверка библиотек без Telegram и ffmpeg:
+Run library tests without Telegram or ffmpeg:
 
 ```bash
 npm test
 ```
 
-Контейнер идемпотентен по `recording_id`: повтор после потери ответа не создаёт
-второе голосовое сообщение, если первое уже помечено доставленным.
+The container is idempotent by `recording_id`, so retrying after a lost response
+does not create a second voice message once the first is marked delivered.

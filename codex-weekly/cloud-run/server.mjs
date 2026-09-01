@@ -189,6 +189,61 @@ function selectMainWindow(rateLimitResult) {
   };
 }
 
+function utcDate(date) {
+  return new Date(Date.UTC(
+    date.getUTCFullYear(),
+    date.getUTCMonth(),
+    date.getUTCDate(),
+  ));
+}
+
+function buildActivity(dailyUsageBuckets) {
+  const levels = new Array(84).fill(0);
+  const tokens = new Array(84).fill(0);
+  const receivedDays = new Set();
+  const today = utcDate(new Date());
+  const mondayOffset = (today.getUTCDay() + 6) % 7;
+  const currentMonday = new Date(today);
+  currentMonday.setUTCDate(currentMonday.getUTCDate() - mondayOffset);
+  const start = new Date(currentMonday);
+  start.setUTCDate(start.getUTCDate() - 11 * 7);
+
+  for (const bucket of dailyUsageBuckets || []) {
+    if (!bucket?.startDate) {
+      continue;
+    }
+    const date = new Date(`${bucket.startDate}T00:00:00Z`);
+    const dayIndex = Math.round((date - start) / 86400000);
+    if (dayIndex >= 0 && dayIndex < 84) {
+      tokens[dayIndex] = Math.max(0, Number(bucket.tokens) || 0);
+      receivedDays.add(bucket.startDate);
+    }
+  }
+
+  const nonZero = tokens.filter((value) => value > 0).sort((left, right) => left - right);
+  const threshold = (fraction) => nonZero.length
+    ? nonZero[Math.min(nonZero.length - 1, Math.floor((nonZero.length - 1) * fraction))]
+    : 0;
+  const thresholds = [threshold(0.25), threshold(0.5), threshold(0.75)];
+
+  for (let index = 0; index < tokens.length; index += 1) {
+    if (tokens[index] === 0) {
+      continue;
+    }
+    levels[index] = tokens[index] <= thresholds[0]
+      ? 1
+      : tokens[index] <= thresholds[1]
+        ? 2
+        : tokens[index] <= thresholds[2] ? 3 : 4;
+  }
+
+  return {
+    startDate: start.toISOString().slice(0, 10),
+    levels: levels.join(""),
+    daysReceived: receivedDays.size,
+  };
+}
+
 function classifyStatusError(error) {
   const message = error instanceof Error ? error.message.toLowerCase() : "";
   if (message.includes("token_expired") ||
@@ -211,16 +266,21 @@ async function readStatus() {
     return statusCache.payload;
   }
 
-  const rateLimits = await codexRequest("account/rateLimits/read");
+  const [rateLimits, usage] = await Promise.all([
+    codexRequest("account/rateLimits/read"),
+    codexRequest("account/usage/read"),
+  ]);
   const payload = {
     generatedAt: new Date().toISOString(),
     weekly: selectMainWindow(rateLimits),
+    activity: buildActivity(usage.dailyUsageBuckets),
   };
   statusCache = { payload, expiresAt: Date.now() + cacheDurationMs };
   console.log("[codex-weekly] quota refreshed", JSON.stringify({
     generatedAt: payload.generatedAt,
     usedPercent: payload.weekly.usedPercent,
     windowDurationMins: payload.weekly.windowDurationMins,
+    activityDaysReceived: payload.activity.daysReceived,
   }));
   return payload;
 }

@@ -1,25 +1,22 @@
 # PebbleOS Voice Drop patch
 
-Патч рассчитан на актуальную ветку `main` репозитория Core Devices PebbleOS и
-только на Emery / Pebble Time 2. Он добавляет:
+**English** · [Русский](README.ru.md)
 
-- системный сервис записи микрофона в Speex 16 kHz, 9.8 kbps;
-- PFS-очередь до 8 МБ с чанками по 16 КБ;
-- принудительную фиксацию последнего чанка и метафайла сразу после остановки;
-- очистку оборванных записей при загрузке;
-- Pebble Protocol endpoint `10001` и pull/ACK передачу;
-- сигнал наличия очереди каждые 30 минут;
-- SDK API `voice_drop_start`, `voice_drop_stop`, `voice_drop_get_status`;
+This patch targets the current Core Devices PebbleOS `main` branch and Emery /
+Pebble Time 2 only. It adds:
+
+- a Speex 16 kHz, 9.8 kbps microphone recording service;
+- an 8 MB PFS queue with 16 KB chunks;
+- safe final-chunk and metadata commits;
+- cleanup of interrupted recordings at boot;
+- Pebble Protocol endpoint `10001` with pull/ACK transfer;
+- a queue-presence signal every 30 minutes;
+- `voice_drop_start`, `voice_drop_stop`, and `voice_drop_get_status` SDK APIs;
 - SDK revision 110.
 
-`voice_drop_stop()` сначала останавливает микрофон, затем закрывает все чанки в
-PFS и создаёт метафайл-коммит последним. Пока операция не закончена, API
-возвращает состояние `VoiceDropStateStopping`; запись не считается готовой и не
-появляется в очереди синхронизации. Закрытие watchapp во время диктовки вызывает
-тот же путь сохранения. Это не запускает внеплановую передачу на телефон:
-синхронизация остаётся раз в 30 минут либо при новом подключении.
-
-Сборка:
+`voice_drop_stop()` stops the microphone, closes every PFS chunk, then writes
+the metadata commit last. Until it completes, the API returns
+`VoiceDropStateStopping`; the recording is not eligible for synchronization.
 
 ```bash
 git clone https://github.com/coredevices/PebbleOS.git
@@ -29,13 +26,10 @@ python3 ./pbl configure --board obelix@pvt
 python3 ./pbl build
 ```
 
-Для другой аппаратной ревизии замените `pvt` на соответствующую ревизию Obelix.
-После сборки используйте сгенерированный SDK `build/sdk/emery` для watchapp из
-`../voice-drop`. Стандартный SDK 4.17 не содержит новых shim-функций и для этой
-версии приложения не подходит.
+Use the generated `build/sdk/emery` SDK to build [`voice-drop`](../voice-drop/).
+The public SDK does not contain the required shim functions.
 
-Верификация патча выполнена на `qemu_emery`: `voice_drop.c` компилируется и
-линкуется в `libservices_voice.a`, а генератор native SDK видит все три функции.
-Полная локальная сборка qemu дальше остановилась на несовместимости установленного
-Homebrew ARM toolchain со сборкой штатного demo-приложения (`stdint.h`), не в
-коде Voice Drop.
+The patch was compiled and linked for `qemu_emery`, and native SDK generation
+found all three functions. A later full QEMU build stopped in the stock demo
+application because of the installed Homebrew ARM toolchain's `stdint.h`
+compatibility, not in Voice Drop code.
