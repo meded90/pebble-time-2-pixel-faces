@@ -2,7 +2,7 @@
   "title": "Find My iPhone",
   "type": "watchapp",
   "category": "Remotes",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "platforms": ["emery"],
   "descriptionFile": "description.en.txt",
   "releaseNotesFile": "release-notes.en.txt",
@@ -19,5 +19,5 @@
     "screenshots/emery/04-signal-sent-200x228.png",
     "screenshots/emery/05-offline-200x228.png"
   ],
-  "binary": "../../dist/candidates/find-my-iphone-0.1.0-emery.pbw"
+  "binary": "../../dist/candidates/find-my-iphone-0.1.1-emery.pbw"
 }

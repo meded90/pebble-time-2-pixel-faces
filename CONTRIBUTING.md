@@ -33,9 +33,19 @@ current source requires the patched PebbleOS SDK documented in
 5. Update [`projects.json`](projects.json). It is the source of truth for the
    project list, source version, platforms, preview, build group, store status,
    and retained artifact.
-6. Run `npm run projects:sync`. Do not edit generated catalog blocks, Makefile
+6. Add or update `<project>/CHANGELOG.md`. Every source version needs its own
+   newest-first `## <version> — YYYY-MM-DD` entry with concrete user-visible
+   release-note bullets. Preserve all older entries.
+7. Run `npm run projects:sync`. Do not edit generated catalog blocks, Makefile
    project lists, `dist/README*.md`, or `dist/SHA256SUMS` by hand.
-7. Add or update project-specific tests and validation notes.
+8. Add or update project-specific tests and validation notes.
+
+A version bump is incomplete until `package.json`, `projects.json`, and the
+project changelog agree. `npm run projects:check` verifies the current version
+has a non-empty changelog entry. Update release notes automatically as part of
+the version change; do not wait for a separate documentation request. Candidate
+and unpublished versions follow the same rule, while store publication remains
+a separate explicitly authorized action.
 
 ## Release artifacts
 
@@ -78,6 +88,12 @@ evidence, but health sensors, microphone behavior, phone integrations, wakeups,
 and external services may require physical hardware. State untested coverage
 explicitly.
 
+For interactive presentation and testing, follow [TESTING.md](TESTING.md): use
+the browser emulator first, boot Emery / Pebble Time 2, and upload the current
+PBW. Use the standard Pebble SDK emulator only after a concrete browser-path
+failure or when the requested behavior is unsupported, and state the fallback
+reason.
+
 ## Store assets
 
 Before publication, provide the sizes required by RePebble, including an Emery
@@ -99,6 +115,7 @@ source links next to the project.
 
 - Review the complete working-tree diff and preserve unrelated user changes.
 - Confirm that English and Russian documentation still agree.
+- Confirm that every changed source version has a matching `CHANGELOG.md` entry.
 - Confirm that local links and preview paths resolve.
 - Do not commit, push, publish, or deploy unless that action was explicitly
   requested.

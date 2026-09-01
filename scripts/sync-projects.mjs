@@ -20,6 +20,30 @@ function assertFile(path, label) {
   if (!existsSync(resolve(root, path))) fail(`${label} does not exist: ${path}`);
 }
 
+function escapeRegExp(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function validateChangelog(project, version) {
+  const path = `${project.directory}/CHANGELOG.md`;
+  assertFile(path, `${project.id} changelog`);
+  const content = readFileSync(resolve(root, path), 'utf8');
+  const heading = new RegExp(
+    `^##[ \\t]+\\[?${escapeRegExp(version)}\\]?(?:[ \\t]+[-–—][ \\t]+.*)?[ \\t]*$`,
+    'm'
+  ).exec(content);
+  if (!heading) {
+    fail(`${project.id}: CHANGELOG.md has no entry for source version ${version}`);
+  }
+  const sectionStart = heading.index + heading[0].length;
+  const remaining = content.slice(sectionStart);
+  const nextHeading = remaining.search(/^##[ \\t]+/m);
+  const section = nextHeading < 0 ? remaining : remaining.slice(0, nextHeading);
+  if (!/^[ \t]*[-*][ \t]+\S/m.test(section)) {
+    fail(`${project.id}: changelog entry ${version} needs at least one release-note bullet`);
+  }
+}
+
 function writeGenerated(path, content) {
   const absolute = resolve(root, path);
   const normalized = `${content.trimEnd()}\n`;
@@ -170,6 +194,7 @@ for (const project of projects) {
   if (packageJson.name !== project.id) {
     fail(`${project.id}: package.json name is ${packageJson.name}`);
   }
+  validateChangelog(project, packageJson.version);
   if (packageJson.version !== project.sourceVersion) {
     fail(`${project.id}: projects.json version ${project.sourceVersion} does not match package.json ${packageJson.version}`);
   }

@@ -10,6 +10,7 @@ Important: this is an independent, unofficial utility based on an undocumented A
 
 Requires Pebble Time 2 (`emery`), Pebble Core on iPhone, an internet connection and an Apple Account with Find My enabled.
 
-## Release notes 0.1.0
+## Release notes 0.1.1
 
-Initial preview release with direct Find My sound requests, trusted-device 2FA, multiple-iPhone selection, a 650 ms hold guard, multilingual UI and explicit offline/auth/rate-limit states.
+- Fixed the sofa scene on Pebble Time 2 so the cushion and iPhone are proportionally scaled to the native 145x99 foreground layer instead of being cropped on the physical display.
+- Preserved the complete composition and transparent safety padding after scaling.

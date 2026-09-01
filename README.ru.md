@@ -25,7 +25,7 @@
 
 | [Gym Zones](gym-zones/) | [Wrist Agent](wrist-agent/) | [Find My iPhone](find-my-iphone/) | [Voice Drop](voice-drop/) |
 | --- | --- | --- | --- |
-| [![Gym Zones](gym-zones/screenshots/z3.png)](gym-zones/) | [![Wrist Agent](assets/screenshots/wrist-agent.png)](wrist-agent/) | [![Find My iPhone](find-my-iphone/assets/emulator-v7-final-scale.png)](find-my-iphone/) | [![Voice Drop](assets/screenshots/voice-drop.png)](voice-drop/) |
+| [![Gym Zones](gym-zones/screenshots/z3.png)](gym-zones/) | [![Wrist Agent](assets/screenshots/wrist-agent.png)](wrist-agent/) | [![Find My iPhone](find-my-iphone/assets/emulator-v9-native-fit.png)](find-my-iphone/) | [![Voice Drop](assets/screenshots/voice-drop.png)](voice-drop/) |
 | Релиз-кандидат · Не опубликован | Релиз-кандидат · Не опубликован | Релиз-кандидат · Не опубликован | Эксперимент · Не опубликован |
 
 «Не опубликован» означает, что в репозитории есть исходники или релиз-кандидат, но нет проверенной публичной страницы в Appstore. Это не означает, что проект прошёл финальную проверку на физических часах или с реальным внешним сервисом.
@@ -44,7 +44,7 @@
 | [Zodiac: Gemini](zodiac-gemini/) | Циферблат | 1.4.0 | Иллюстрация Близнецов и крупное цифровое время. |
 | [Gym Zones](gym-zones/) | Приложение | 1.0.0 | Силовая тренировка, отдых, пульсовые зоны и минутный PPG-HRV. |
 | [Wrist Agent](wrist-agent/) | Приложение | 1.0.0 | Голосовой frontend для самостоятельно развёрнутого ChatGPT Workspace Agent bridge. |
-| [Find My iPhone](find-my-iphone/) | Приложение | 0.1.0 | Экспериментальный прямой запрос Apple Find My через подключённый iPhone. |
+| [Find My iPhone](find-my-iphone/) | Приложение | 0.1.1 | Экспериментальный прямой запрос Apple Find My через подключённый iPhone. |
 | [Voice Drop](voice-drop/) | Приложение | 0.2.0 | Запись с микрофона часов через пропатченную прошивку и мобильный мост. |
 <!-- projects:catalog:end -->
 
@@ -81,31 +81,31 @@ make find-my-iphone PEBBLE="$PWD/.venv/bin/pebble"
 `dist/experimental/voice-drop-prototype-0.1.0.pbw` несовместим с текущими
 исходниками Voice Drop 0.2.0, и его не следует устанавливать как эту версию.
 
-## Запуск в эмуляторе
+## Показ и тестирование приложения
 
-Из каталога любого проекта:
+Основной путь —
+[браузерный pebble-qemu-wasm](https://ericmigi.github.io/pebble-qemu-wasm/).
+Соберите или выберите нужный PBW, загрузите Emery / Pebble Time 2 на странице,
+затем нажмите **Upload .pbw** или перетащите бинарник на часы. Если пользователь
+просит показать, открыть или запустить приложение для тестирования, по умолчанию
+используется этот browser-first сценарий, а интерактивный результат остаётся
+доступным пользователю.
+
+Стандартный эмулятор Pebble SDK используется только при конкретном сбое загрузки
+браузера, WebAssembly, PBW, установки или запуска приложения, а также когда нужны
+SDK-логи либо отсутствующие в браузере возможности оборудования или сервисов:
 
 ```bash
-pebble build
-pebble install --emulator emery --logs
+pebble install --emulator emery --logs path/to/application.pbw
 ```
 
-Полезные команды проверки:
+Для текущих исходников выполните в каталоге проекта `pebble build`, затем
+`pebble install --emulator emery --logs`. Если эмулятор показывает старое
+состояние, перед новой сборкой выполните `pebble kill` и `pebble wipe`.
 
-```bash
-pebble emu-time-format --emulator emery --format 12h
-pebble emu-battery --emulator emery --percent 9
-pebble emu-steps --emulator emery 12345
-pebble emu-heart-rate --emulator emery 72
-pebble screenshot --emulator emery screenshot.png
-```
-
-Если эмулятор показывает старую сборку, выполните `pebble kill`, `pebble wipe`,
-соберите проект заново и переустановите его. Для дополнительной визуальной и
-интерактивной проверки можно использовать
-[pebble-qemu-wasm](https://github.com/ericmigi/pebble-qemu-wasm) и его
-[онлайн-демо](https://ericmigi.github.io/pebble-qemu-wasm/). Браузерный эмулятор
-не заменяет финальную проверку на физических часах.
+Полный browser-first процесс, управление, локальный запуск `pebble-qemu-wasm`,
+условия fallback и границы проверки на физических часах описаны в
+[TESTING.ru.md](TESTING.ru.md).
 
 ## Опубликовано в RePebble
 
@@ -126,6 +126,8 @@ pebble screenshot --emulator emery screenshot.png
 - [`README.md`](README.md) — основной обзор на английском;
   [`README.ru.md`](README.ru.md) — дополнительная русская версия.
 - Каждый Pebble-проект изолирован в своём каталоге и сохраняет стабильный UUID.
+- Каждый проект ведёт накопительный `CHANGELOG.md`. Версия исходников не пройдёт
+  `npm run projects:check` без непустой записи с тем же номером.
 - Сгенерированные `build/` и зависимости игнорируются; выбранные релизные пакеты
   и визуальные материалы версионируются осознанно.
 - Требования, границы приватности и результаты проверки находятся рядом с

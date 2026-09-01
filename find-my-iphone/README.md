@@ -51,7 +51,7 @@ npm test
 ```
 
 The local build is `build/find-my-iphone.pbw`. The audited release candidate is
-[`../dist/candidates/find-my-iphone-0.1.0-emery.pbw`](../dist/candidates/find-my-iphone-0.1.0-emery.pbw).
+[`../dist/candidates/find-my-iphone-0.1.1-emery.pbw`](../dist/candidates/find-my-iphone-0.1.1-emery.pbw).
 
 Install in the emulator with:
 

@@ -10,7 +10,7 @@
 - `icons/icon-144.png` — Large Icon, 144×144;
 - `banner/marketing-banner-720x320.png` — обязательный баннер watchapp;
 - `screenshots/emery/*.png` — пять необрамлённых скриншотов 200×228;
-- `../../dist/candidates/find-my-iphone-0.1.0-emery.pbw` — бинарник релиз-кандидата;
+- `../../dist/candidates/find-my-iphone-0.1.1-emery.pbw` — бинарник релиз-кандидата;
 - `description.en.txt` и `release-notes.en.txt` — готовые поля листинга;
 - `metadata.json` — все поля в удобном для переноса виде.
 

@@ -6,7 +6,7 @@ PBW files are separated by the status of the binary itself. “Published-version
 
 | Project | Artifact | Version | Binary status | Store status |
 | --- | --- | --- | --- | --- |
-| [Find My iPhone](../find-my-iphone/) | [candidates/find-my-iphone-0.1.0-emery.pbw](candidates/find-my-iphone-0.1.0-emery.pbw) | 0.1.0 | Release candidate | Not published |
+| [Find My iPhone](../find-my-iphone/) | [candidates/find-my-iphone-0.1.1-emery.pbw](candidates/find-my-iphone-0.1.1-emery.pbw) | 0.1.1 | Release candidate | Not published |
 | [Gym Zones](../gym-zones/) | [candidates/gym-zones-1.0.0.pbw](candidates/gym-zones-1.0.0.pbw) | 1.0.0 | Release candidate | Not published |
 | [Info Tiles](../info-tiles/) | [candidates/info-tiles-1.0.0.pbw](candidates/info-tiles-1.0.0.pbw) | 1.0.0 | Release candidate | Not published |
 | [meded90](../meded90/) | [candidates/meded90-1.0.0.pbw](candidates/meded90-1.0.0.pbw) | 1.0.0 | Release candidate | Not published |

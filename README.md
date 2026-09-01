@@ -25,7 +25,7 @@ its own UUID, version, source directory, and independently built `.pbw` package.
 
 | [Gym Zones](gym-zones/) | [Wrist Agent](wrist-agent/) | [Find My iPhone](find-my-iphone/) | [Voice Drop](voice-drop/) |
 | --- | --- | --- | --- |
-| [![Gym Zones](gym-zones/screenshots/z3.png)](gym-zones/) | [![Wrist Agent](assets/screenshots/wrist-agent.png)](wrist-agent/) | [![Find My iPhone](find-my-iphone/assets/emulator-v7-final-scale.png)](find-my-iphone/) | [![Voice Drop](assets/screenshots/voice-drop.png)](voice-drop/) |
+| [![Gym Zones](gym-zones/screenshots/z3.png)](gym-zones/) | [![Wrist Agent](assets/screenshots/wrist-agent.png)](wrist-agent/) | [![Find My iPhone](find-my-iphone/assets/emulator-v9-native-fit.png)](find-my-iphone/) | [![Voice Drop](assets/screenshots/voice-drop.png)](voice-drop/) |
 | Release candidate · Not published | Release candidate · Not published | Release candidate · Not published | Experimental · Not published |
 
 “Not published” means that the repository contains source code or a release candidate, but no verified public Appstore page. It does not mean the project has passed final hardware or service validation.
@@ -44,7 +44,7 @@ its own UUID, version, source directory, and independently built `.pbw` package.
 | [Zodiac: Gemini](zodiac-gemini/) | Watchface | 1.4.0 | Illustrated Gemini face with large digital time. |
 | [Gym Zones](gym-zones/) | Watchapp | 1.0.0 | Strength workout, rest, HR zones, and one-minute PPG-HRV. |
 | [Wrist Agent](wrist-agent/) | Watchapp | 1.0.0 | Voice front end for a privately deployed ChatGPT Workspace Agent bridge. |
-| [Find My iPhone](find-my-iphone/) | Watchapp | 0.1.0 | Experimental direct Apple Find My sound request from the paired iPhone. |
+| [Find My iPhone](find-my-iphone/) | Watchapp | 0.1.1 | Experimental direct Apple Find My sound request from the paired iPhone. |
 | [Voice Drop](voice-drop/) | Watchapp | 0.2.0 | On-watch microphone recording with patched firmware and phone bridge. |
 <!-- projects:catalog:end -->
 
@@ -82,31 +82,30 @@ The artifact in `dist/experimental/voice-drop-prototype-0.1.0.pbw` is not
 compatible with the current Voice Drop 0.2.0 source and should not be installed
 as that version.
 
-## Run in an emulator
+## Show and test an application
 
-From any project directory:
+The primary path is the
+[pebble-qemu-wasm browser emulator](https://ericmigi.github.io/pebble-qemu-wasm/).
+Build or select the requested PBW, boot Emery / Pebble Time 2 in the page, then
+use **Upload .pbw** or drag the binary onto the watch. When a user asks to show,
+open, or run an application for testing, this browser-first workflow is the
+default and the interactive result should remain available to the user.
+
+Use the standard Pebble SDK emulator only if browser boot, WebAssembly, PBW
+upload, installation, or application execution fails, or when the requested
+behavior needs SDK logs or unsupported hardware/service capabilities:
 
 ```bash
-pebble build
-pebble install --emulator emery --logs
+pebble install --emulator emery --logs path/to/application.pbw
 ```
 
-Useful state checks:
+From a project directory, `pebble build` followed by
+`pebble install --emulator emery --logs` builds and installs the current source.
+If that emulator is stale, run `pebble kill` and `pebble wipe` before rebuilding.
 
-```bash
-pebble emu-time-format --emulator emery --format 12h
-pebble emu-battery --emulator emery --percent 9
-pebble emu-steps --emulator emery 12345
-pebble emu-heart-rate --emulator emery 72
-pebble screenshot --emulator emery screenshot.png
-```
-
-If the emulator is stale, run `pebble kill`, `pebble wipe`, rebuild, and
-reinstall. You can also use
-[pebble-qemu-wasm](https://github.com/ericmigi/pebble-qemu-wasm) and its
-[live browser demo](https://ericmigi.github.io/pebble-qemu-wasm/) for additional
-visual and interaction checks. Browser emulation does not replace final testing
-on physical hardware.
+See [TESTING.md](TESTING.md) for the complete browser-first procedure, controls,
+local `pebble-qemu-wasm` hosting, fallback criteria, and physical-hardware
+validation boundaries.
 
 ## Published on RePebble
 
@@ -127,6 +126,8 @@ added only after the Appstore page has been verified.
 - [`README.md`](README.md) is the canonical English overview;
   [`README.ru.md`](README.ru.md) is its Russian translation.
 - Each Pebble project is isolated in its own directory and keeps a stable UUID.
+- Every project keeps a cumulative `CHANGELOG.md`. A source version cannot pass
+  `npm run projects:check` without a non-empty entry for that exact version.
 - Generated `build/` directories and dependencies are ignored; selected release
   packages and visual assets are versioned deliberately.
 - Project-specific requirements, privacy boundaries, and validation notes live

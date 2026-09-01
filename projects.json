@@ -228,9 +228,9 @@
       "type": "watchapp",
       "buildGroup": "standard-apps",
       "directory": "find-my-iphone",
-      "sourceVersion": "0.1.0",
+      "sourceVersion": "0.1.1",
       "platforms": ["emery"],
-      "preview": "find-my-iphone/assets/emulator-v7-final-scale.png",
+      "preview": "find-my-iphone/assets/emulator-v9-native-fit.png",
       "description": {
         "en": "Experimental direct Apple Find My sound request from the paired iPhone.",
         "ru": "Экспериментальный прямой запрос Apple Find My через подключённый iPhone."
@@ -238,8 +238,8 @@
       "store": {"status": "candidate"},
       "artifact": {
         "status": "candidate",
-        "version": "0.1.0",
-        "path": "dist/candidates/find-my-iphone-0.1.0-emery.pbw"
+        "version": "0.1.1",
+        "path": "dist/candidates/find-my-iphone-0.1.1-emery.pbw"
       }
     },
     {

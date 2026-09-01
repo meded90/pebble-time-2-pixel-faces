@@ -1,4 +1,4 @@
-# Release validation: Find My iPhone 0.1.0
+# Release validation: Find My iPhone 0.1.1
 
 Дата проверки: 2026-09-01
 
@@ -31,6 +31,6 @@
 
 Публикацию следует начинать как скрытый листинг. Приложение использует недокументированный Apple API, поэтому Apple может изменить или отключить используемый сценарий без предупреждения.
 
-Файл релиз-кандидата: `../../dist/candidates/find-my-iphone-0.1.0-emery.pbw`
+Файл релиз-кандидата: `../../dist/candidates/find-my-iphone-0.1.1-emery.pbw`
 
-SHA-256: `f808a89eb36e7d81e3cc4ab9ce310478d5442af414c57a40bb4ddaa1f949c136`
+SHA-256: `c363352a16947c7e9cf33e9801288cd97910b39c6289299b0139228a00b40264`

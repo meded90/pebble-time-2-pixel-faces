@@ -6,7 +6,7 @@ PBW разделены по статусу самого бинарника. «О
 
 | Проект | Артефакт | Версия | Статус бинарника | Статус в магазине |
 | --- | --- | --- | --- | --- |
-| [Find My iPhone](../find-my-iphone/) | [candidates/find-my-iphone-0.1.0-emery.pbw](candidates/find-my-iphone-0.1.0-emery.pbw) | 0.1.0 | Релиз-кандидат | Не опубликован |
+| [Find My iPhone](../find-my-iphone/) | [candidates/find-my-iphone-0.1.1-emery.pbw](candidates/find-my-iphone-0.1.1-emery.pbw) | 0.1.1 | Релиз-кандидат | Не опубликован |
 | [Gym Zones](../gym-zones/) | [candidates/gym-zones-1.0.0.pbw](candidates/gym-zones-1.0.0.pbw) | 1.0.0 | Релиз-кандидат | Не опубликован |
 | [Info Tiles](../info-tiles/) | [candidates/info-tiles-1.0.0.pbw](candidates/info-tiles-1.0.0.pbw) | 1.0.0 | Релиз-кандидат | Не опубликован |
 | [meded90](../meded90/) | [candidates/meded90-1.0.0.pbw](candidates/meded90-1.0.0.pbw) | 1.0.0 | Релиз-кандидат | Не опубликован |
