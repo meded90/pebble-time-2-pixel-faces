@@ -1,7 +1,7 @@
 {
   "name": "find-my-iphone",
   "author": "Kirill Baldin",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Pebble Time 2 client for triggering Find My playSound",
   "keywords": ["pebble-app", "find-my", "iphone", "emery"],
   "private": true,

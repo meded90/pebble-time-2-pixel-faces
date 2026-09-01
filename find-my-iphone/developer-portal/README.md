@@ -9,7 +9,7 @@ Prepared listing materials for the Find My iPhone watchapp on `emery`.
 - `icons/icon-48.png` and `icons/icon-144.png`;
 - `banner/marketing-banner-720x320.png`;
 - five native 200×228 screenshots under `screenshots/emery/`;
-- [`../../dist/candidates/find-my-iphone-0.1.1-emery.pbw`](../../dist/candidates/find-my-iphone-0.1.1-emery.pbw);
+- [`../../dist/published/find-my-iphone-0.1.2-emery.pbw`](../../dist/published/find-my-iphone-0.1.2-emery.pbw);
 - `description.en.txt`, `release-notes.en.txt`, and `metadata.json`.
 
 Additional assets include menu/store icons, Russian listing copy, expanded

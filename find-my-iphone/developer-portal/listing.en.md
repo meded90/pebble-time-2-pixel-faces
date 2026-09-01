@@ -10,7 +10,9 @@ Important: this is an independent, unofficial utility based on an undocumented A
 
 Requires Pebble Time 2 (`emery`), Pebble Core on iPhone, an internet connection and an Apple Account with Find My enabled.
 
-## Release notes 0.1.1
+## Release notes 0.1.2
 
-- Fixed the sofa scene on Pebble Time 2 so the cushion and iPhone are proportionally scaled to the native 145x99 foreground layer instead of being cropped on the physical display.
-- Preserved the complete composition and transparent safety padding after scaling.
+- Settings now resume the saved login, 2FA, device-selection, or connected step after Pebble closes the configuration page. Reopen Settings to continue after each action.
+- Fixed Apple SRP sign-in so refreshed challenge headers, session IDs, auth attributes, and cookies are carried through authorize, initialization, and completion requests.
+- Safe sign-in diagnostics now include the HTTP status and Apple error code without logging passwords, 2FA codes, cookies, or session tokens.
+- Real Apple sign-in remains a physical-iPhone validation step; the public browser QEMU is intended only for UI and protocol testing.

@@ -228,18 +228,22 @@
       "type": "watchapp",
       "buildGroup": "standard-apps",
       "directory": "find-my-iphone",
-      "sourceVersion": "0.1.1",
+      "sourceVersion": "0.1.2",
       "platforms": ["emery"],
       "preview": "find-my-iphone/assets/emulator-v9-native-fit.png",
       "description": {
         "en": "Experimental direct Apple Find My sound request from the paired iPhone.",
         "ru": "Экспериментальный прямой запрос Apple Find My через подключённый iPhone."
       },
-      "store": {"status": "candidate"},
+      "store": {
+        "status": "published",
+        "publishedVersion": "0.1.2",
+        "url": "https://apps.repebble.com/7ffae9b84d714b9882f7a40f"
+      },
       "artifact": {
-        "status": "candidate",
-        "version": "0.1.1",
-        "path": "dist/candidates/find-my-iphone-0.1.1-emery.pbw"
+        "status": "published",
+        "version": "0.1.2",
+        "path": "dist/published/find-my-iphone-0.1.2-emery.pbw"
       }
     },
     {

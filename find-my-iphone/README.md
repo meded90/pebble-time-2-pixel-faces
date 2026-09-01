@@ -50,8 +50,8 @@ npm test
 ../.venv/bin/pebble build
 ```
 
-The local build is `build/find-my-iphone.pbw`. The audited release candidate is
-[`../dist/candidates/find-my-iphone-0.1.1-emery.pbw`](../dist/candidates/find-my-iphone-0.1.1-emery.pbw).
+The local build is `build/find-my-iphone.pbw`. The audited published artifact is
+[`../dist/published/find-my-iphone-0.1.2-emery.pbw`](../dist/published/find-my-iphone-0.1.2-emery.pbw).
 
 Install in the emulator with:
 
