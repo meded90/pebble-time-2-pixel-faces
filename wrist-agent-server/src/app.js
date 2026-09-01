@@ -12,12 +12,14 @@ import { createMcpPostHandler, mcpMethodNotAllowed } from './mcp.js';
 const ACTIVE_STATUSES = new Set([
   'trigger_pending',
   'trigger_retryable',
+  'triggering',
   'queued',
   'in_progress',
   'awaiting_callback',
 ]);
 
 const TERMINAL_STATUSES = new Set(['completed', 'failed', 'expired']);
+const MAX_REQUEST_BODY_BYTES = 16 * 1024;
 
 function constantTimeTokenMatch(candidate, expected) {
   const left = sha256(candidate);
@@ -101,6 +103,7 @@ function publicStatus(request) {
   switch (request.status) {
     case 'trigger_pending':
     case 'trigger_retryable':
+    case 'triggering':
     case 'queued':
       return 'queued';
     case 'in_progress':
@@ -157,76 +160,98 @@ class MinuteRateLimiter {
   }
 }
 
-async function triggerStoredRequest({ request, store, agentClient, config, now }) {
-  return store.withLock(`trigger:${request.requestId}`, async () => {
-    let currentRequest = await store.get(request.requestId);
-    if (!currentRequest) {
-      return null;
-    }
-    if (!['trigger_pending', 'trigger_retryable'].includes(currentRequest.status)) {
-      return currentRequest;
-    }
-    if (currentRequest.expiresAt <= now()) {
-      return store.update(currentRequest.requestId, (current) => {
-        if (['trigger_pending', 'trigger_retryable'].includes(current.status) &&
-            current.expiresAt <= now()) {
-          current.status = 'expired';
-          current.errorCode = 'REQUEST_EXPIRED';
-          current.pendingCallbackToken = null;
-          current.callbackCapabilityHash = null;
-          current.command = null;
-        }
-        return current;
-      });
-    }
+function triggerLeaseMs(config) {
+  // A lease covers all retry attempts plus a small scheduling margin. The
+  // request TTL remains the hard upper bound: a long-lost invocation cannot
+  // keep a watch request alive after its original window.
+  const timeoutMs = Number.isSafeInteger(config.agentTimeoutMs)
+    ? config.agentTimeoutMs
+    : 15000;
+  const maxAttempts = Number.isSafeInteger(config.agentMaxAttempts)
+    ? config.agentMaxAttempts
+    : 3;
+  const maximumRequestDuration = timeoutMs * maxAttempts + 5000;
+  return Math.max(1000, Math.min(config.requestTtlMs, maximumRequestDuration));
+}
 
+async function triggerStoredRequest({ request, store, agentClient, config, now }) {
+  const claimed = await store.claimTrigger(request.requestId, triggerLeaseMs(config));
+  if (!claimed.request) {
+    return null;
+  }
+  const currentRequest = claimed.request;
+  if (currentRequest.expiresAt <= now()) {
+    return store.update(currentRequest.requestId, (current) => {
+      if (!TERMINAL_STATUSES.has(current.status) && current.expiresAt <= now()) {
+        current.status = 'expired';
+        current.errorCode = 'REQUEST_EXPIRED';
+        current.pendingCallbackToken = null;
+        current.callbackCapabilityHash = null;
+        current.triggerLeaseId = null;
+        current.triggerLeaseExpiresAt = 0;
+        current.command = null;
+      }
+      return current;
+    });
+  }
+  if (!claimed.claimed) {
+    return currentRequest;
+  }
+
+  try {
     const callbackToken = openSecret(
       config.capabilityPepper, currentRequest.pendingCallbackToken);
     const prompt = promptForRequest(currentRequest, callbackToken, config.publicBaseUrl);
-    try {
-      const trigger = await agentClient.trigger({
-        input: prompt,
-        conversationKey: currentRequest.conversationKey,
-        idempotencyKey: currentRequest.agentIdempotencyKey,
-      });
-      const acceptedAt = now();
-      return store.update(currentRequest.requestId, (current) => {
-        current.conversationUrl = trigger.conversationUrl;
-        current.agentRunId = trigger.runId;
-        current.upstreamStatus = trigger.runId ? 'queued' : 'unknown';
-        current.lastRunPollAt = 0;
-        current.nextRunPollAt = 0;
-        current.runPollFailures = 0;
+    const trigger = await agentClient.trigger({
+      input: prompt,
+      conversationKey: currentRequest.conversationKey,
+      idempotencyKey: currentRequest.agentIdempotencyKey,
+    });
+    const acceptedAt = now();
+    return store.update(currentRequest.requestId, (current) => {
+      // A callback may arrive before the trigger response. A late instance
+      // must never overwrite that result, even if the upstream request timed
+      // out on its side.
+      if (current.status !== 'triggering' || current.triggerLeaseId !== claimed.leaseId) {
+        return current;
+      }
+      current.conversationUrl = trigger.conversationUrl;
+      current.agentRunId = trigger.runId;
+      current.upstreamStatus = trigger.runId ? 'queued' : 'unknown';
+      current.lastRunPollAt = 0;
+      current.nextRunPollAt = 0;
+      current.runPollFailures = 0;
+      current.pendingCallbackToken = null;
+      current.command = null;
+      current.triggerLeaseId = null;
+      current.triggerLeaseExpiresAt = 0;
+      current.status = trigger.runId ? 'queued' : 'awaiting_callback';
+      current.callbackExpiresAt = acceptedAt + config.requestTtlMs;
+      current.expiresAt = acceptedAt + config.requestTtlMs;
+      return current;
+    });
+  } catch (error) {
+    const retryable = error?.retryable === true;
+    const updated = await store.update(currentRequest.requestId, (current) => {
+      if (current.status !== 'triggering' || current.triggerLeaseId !== claimed.leaseId) {
+        return current;
+      }
+      current.status = retryable ? 'trigger_retryable' : 'failed';
+      current.errorCode = error?.code || 'AGENT_REQUEST';
+      current.triggerLeaseId = null;
+      current.triggerLeaseExpiresAt = 0;
+      if (!retryable) {
         current.pendingCallbackToken = null;
+        current.callbackCapabilityHash = null;
         current.command = null;
-        if (['trigger_pending', 'trigger_retryable'].includes(current.status)) {
-          current.status = trigger.runId ? 'queued' : 'awaiting_callback';
-        }
-        current.callbackExpiresAt = acceptedAt + config.requestTtlMs;
-        current.expiresAt = acceptedAt + config.requestTtlMs;
-        return current;
-      });
-    } catch (error) {
-      const retryable = error?.retryable === true;
-      const updated = await store.update(currentRequest.requestId, (current) => {
-        if (!['trigger_pending', 'trigger_retryable'].includes(current.status)) {
-          return current;
-        }
-        current.status = retryable ? 'trigger_retryable' : 'failed';
-        current.errorCode = error?.code || 'AGENT_REQUEST';
-        if (!retryable) {
-          current.pendingCallbackToken = null;
-          current.callbackCapabilityHash = null;
-          current.command = null;
-        }
-        return current;
-      });
-      const wrapped = new Error('Workspace Agent trigger failed');
-      wrapped.statusCode = retryable ? 503 : 502;
-      wrapped.publicCode = error?.code || updated.errorCode || 'AGENT_REQUEST';
-      throw wrapped;
-    }
-  });
+      }
+      return current;
+    });
+    const wrapped = new Error('Workspace Agent trigger failed');
+    wrapped.statusCode = retryable ? 503 : 502;
+    wrapped.publicCode = error?.code || updated?.errorCode || 'AGENT_REQUEST';
+    throw wrapped;
+  }
 }
 
 async function refreshRun({ request, store, agentClient, now }) {
@@ -321,6 +346,8 @@ async function expireIfNeeded(request, store, now) {
           : 'REQUEST_EXPIRED';
         current.pendingCallbackToken = null;
         current.callbackCapabilityHash = null;
+        current.triggerLeaseId = null;
+        current.triggerLeaseExpiresAt = 0;
         current.command = null;
       }
       return current;
@@ -351,7 +378,31 @@ export function createApp({ config, store, agentClient, now = () => Date.now() }
     }
     next();
   });
-  app.use(express.json({ limit: '16kb', type: ['application/json', 'application/*+json'] }));
+  // Cloud Functions' framework may already have parsed req.body before this
+  // Express app receives it. Enforce the same application-level limit in both
+  // modes instead of relying only on express.json() for the Docker path.
+  app.use((request, response, next) => {
+    const contentLength = Number(request.get('content-length'));
+    if ((Number.isFinite(contentLength) && contentLength > MAX_REQUEST_BODY_BYTES) ||
+        request.rawBody?.length > MAX_REQUEST_BODY_BYTES) {
+      const error = new Error('request body is too large');
+      error.type = 'entity.too.large';
+      next(error);
+      return;
+    }
+    next();
+  });
+  const jsonParser = express.json({
+    limit: '16kb',
+    type: ['application/json', 'application/*+json'],
+  });
+  app.use((request, response, next) => {
+    if (request.body !== undefined) {
+      next();
+      return;
+    }
+    jsonParser(request, response, next);
+  });
 
   app.get('/', (request, response) => {
     response.json({
@@ -452,6 +503,8 @@ export function createApp({ config, store, agentClient, now = () => Date.now() }
         callbackExpiresAt: timestamp + config.requestTtlMs,
         callbackPayloadHash: null,
         pendingCallbackToken: sealSecret(config.capabilityPepper, callbackToken),
+        triggerLeaseId: null,
+        triggerLeaseExpiresAt: 0,
         agentIdempotencyKey: `${requestId}-initial`,
         agentRunId: null,
         conversationUrl: null,
@@ -503,6 +556,9 @@ export function createApp({ config, store, agentClient, now = () => Date.now() }
         return;
       }
       record = await expireIfNeeded(record, store, now);
+      if (['trigger_pending', 'trigger_retryable', 'triggering'].includes(record.status)) {
+        record = await triggerStoredRequest({ request: record, store, agentClient, config, now });
+      }
       record = await refreshRun({ request: record, store, agentClient, now });
       response.json(publicRequest(record, now()));
     } catch (error) {
@@ -535,6 +591,8 @@ export function createApp({ config, store, agentClient, now = () => Date.now() }
           current.errorCode = 'REQUEST_EXPIRED';
           current.pendingCallbackToken = null;
           current.callbackCapabilityHash = null;
+          current.triggerLeaseId = null;
+          current.triggerLeaseExpiresAt = 0;
           current.command = null;
           return current;
         }
@@ -564,6 +622,8 @@ export function createApp({ config, store, agentClient, now = () => Date.now() }
           };
           current.callbackCapabilityHash = null;
           current.pendingCallbackToken = null;
+          current.triggerLeaseId = null;
+          current.triggerLeaseExpiresAt = 0;
           return current;
         }
 
@@ -582,6 +642,8 @@ export function createApp({ config, store, agentClient, now = () => Date.now() }
         current.callbackExpiresAt = now() + config.requestTtlMs;
         current.callbackPayloadHash = null;
         current.pendingCallbackToken = sealSecret(config.capabilityPepper, callbackToken);
+        current.triggerLeaseId = null;
+        current.triggerLeaseExpiresAt = 0;
         current.agentIdempotencyKey = `${current.requestId}-approval-1`;
         current.agentRunId = null;
         current.upstreamStatus = null;

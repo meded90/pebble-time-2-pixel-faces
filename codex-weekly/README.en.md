@@ -17,9 +17,10 @@ A native Pebble Time 2 watchface (`emery`, 200×228) with:
 
 The square in the upper-right corner shows synchronization state: gray means
 not configured, blue means updating, green means data was received, and red
-means a connection or response error. The adjacent short server label is
-`SET`, `SYNC`, `OK`, or a safe error code: `AUTH`, `TOKEN`, `TIME`, `NET`,
-`DATA`, or `ERR`. On an error, stored quota data is cleared so the watchface
+means a connection or response error. Only on an error, a safe cause code
+(`AUTH`, `TOKEN`, `TIME`, `NET`, `DATA`, or `ERR`) appears to the left of the
+square, right-aligned and in the same pixel font as `CODEX`. On an error,
+stored quota data is cleared so the watchface
 shows `—` and gray cells instead of stale data.
 
 ## Cloud Run setup
@@ -35,6 +36,10 @@ Step-by-step deployment guides:
 
 When data, authentication, or the service is unavailable, the watchface shows
 neutral `—` values and gray blocks instead of stale or invented data.
+
+The settings page includes **Check server status**. It tests the entered
+`/status` URL and client token without saving settings, displays the remaining
+quota on success or a safe error code on failure, and never displays the token.
 
 ## Local bridge alternative
 

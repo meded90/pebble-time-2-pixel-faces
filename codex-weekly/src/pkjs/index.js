@@ -1,6 +1,90 @@
 var Clay = require('@rebble/clay');
 var config = require('./config');
-var clay = new Clay(config, null, { autoHandleEvents: false });
+
+function configureStatusCheck(minified) {
+  var clayConfig = this;
+
+  function normalizeUrl(value) {
+    var url = (value || '').replace(/^\s+|\s+$/g, '');
+    if (!url) {
+      return '';
+    }
+    return /\/status(?:[?#]|$)/.test(url)
+      ? url
+      : url.replace(/\/+$/, '') + '/status';
+  }
+
+  function safeServerCode(request) {
+    if (request.status === 401 || request.status === 403) {
+      return 'TOKEN';
+    }
+    try {
+      var code = JSON.parse(request.responseText).code;
+      return /^(AUTH|TIME|DATA|ERR|TOKEN|NET)$/.test(code) ? code : 'ERR';
+    } catch (error) {
+      return request.status === 0 ? 'NET' : 'ERR';
+    }
+  }
+
+  clayConfig.on(clayConfig.EVENTS.AFTER_BUILD, function() {
+    var button = clayConfig.getItemById('check_server_status');
+    var result = clayConfig.getItemById('server_status_result');
+
+    function showResult(message) {
+      result.set(message);
+    }
+
+    button.$element.select('button').on('click', function() {
+      var url = normalizeUrl(clayConfig.getItemByMessageKey('BRIDGE_URL').get());
+      var token = clayConfig.getItemByMessageKey('BRIDGE_TOKEN').get() || '';
+      if (!url) {
+        showResult('Server: add a Status URL first.');
+        return;
+      }
+
+      button.disable();
+      showResult('Server: checking…');
+
+      var request = new XMLHttpRequest();
+      request.timeout = 15000;
+      request.onload = function() {
+        button.enable();
+        if (request.status < 200 || request.status >= 300) {
+          var code = safeServerCode(request);
+          showResult(code === 'AUTH'
+            ? 'Server: AUTH — refresh Codex authentication.'
+            : 'Server: error ' + code + '.');
+          return;
+        }
+
+        try {
+          var status = JSON.parse(request.responseText);
+          var left = Number(status.weekly && status.weekly.leftPercent);
+          showResult(isFinite(left)
+            ? 'Server: OK — ' + Math.round(left) + '% left.'
+            : 'Server: error DATA.');
+        } catch (error) {
+          showResult('Server: error DATA.');
+        }
+      };
+      request.onerror = function() {
+        button.enable();
+        showResult('Server: error NET.');
+      };
+      request.ontimeout = function() {
+        button.enable();
+        showResult('Server: error TIME.');
+      };
+      request.open('GET', url);
+      if (token) {
+        request.setRequestHeader('Authorization', 'Bearer ' + token);
+      }
+      request.send();
+    });
+  });
+}
+
+var clay = new Clay(config, configureStatusCheck, { autoHandleEvents: false });
 
 var SETTINGS_KEY = 'codex_weekly_bridge_settings';
 var CACHE_KEY = 'codex_weekly_status_cache';

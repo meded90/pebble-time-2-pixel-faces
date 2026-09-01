@@ -248,6 +248,18 @@ test('wrong MCP capability reveals no request details', async (t) => {
   assert(!JSON.stringify(result).includes(created.requestId));
 });
 
+test('request bodies above the 16 KiB contract are rejected', async (t) => {
+  const context = await fixture();
+  t.after(() => context.close());
+  const response = await fetch(`${context.baseUrl}/v1/requests`, {
+    method: 'POST',
+    headers: apiHeaders('request-body-too-large'),
+    body: JSON.stringify({ command: 'x'.repeat(17 * 1024) }),
+  });
+  assert.equal(response.status, 413);
+  assert.equal((await response.json()).error.code, 'BODY_TOO_LARGE');
+});
+
 test('confirmation requires an exact watch-visible summary', async (t) => {
   const context = await fixture();
   t.after(() => context.close());
@@ -360,6 +372,40 @@ test('callback wins over a lost trigger response', async (t) => {
   const stored = await context.store.get(requestIdFromTrigger(trigger));
   assert.equal(stored.status, 'completed');
   assert.equal(stored.result.shortAnswer, 'You have two events today.');
+  assert.equal(stored.pendingCallbackToken, null);
+});
+
+test('a concurrent idempotent retry does not start a second Workspace Agent trigger', async (t) => {
+  let resolveTrigger;
+  const deferredTrigger = new Promise((resolve) => {
+    resolveTrigger = resolve;
+  });
+  const context = await fixture({ trigger: () => deferredTrigger });
+  t.after(() => context.close());
+
+  const first = fetch(`${context.baseUrl}/v1/requests`, {
+    method: 'POST',
+    headers: apiHeaders('request-distributed-trigger-lease'),
+    body: JSON.stringify({ command: 'What is on my calendar?' }),
+  });
+  while (context.triggerCalls.length === 0) {
+    await new Promise((resolve) => setImmediate(resolve));
+  }
+
+  const retry = await fetch(`${context.baseUrl}/v1/requests`, {
+    method: 'POST',
+    headers: apiHeaders('request-distributed-trigger-lease'),
+    body: JSON.stringify({ command: 'What is on my calendar?' }),
+  });
+  assert.equal(retry.status, 202);
+  assert.equal(context.triggerCalls.length, 1);
+
+  resolveTrigger({
+    conversationUrl: 'https://chatgpt.com/c/trigger-lease',
+    runId: 'apirun_trigger_lease',
+  });
+  assert.equal((await first).status, 202);
+  assert.equal(context.triggerCalls.length, 1);
 });
 
 test('parallel approve and reject produce one atomic decision', async (t) => {

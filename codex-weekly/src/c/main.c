@@ -22,6 +22,9 @@ static char s_reset_text[12] = "-";
 static char s_activity_map[ACTIVITY_COUNT + 1];
 static char s_error_code[6] = "SET";
 
+static void clear_status(void);
+static void set_error_code(const char *incoming);
+
 static const GColor COLOR_WHITE = GColorFromHEX(0xFFFFFF);
 static const GColor COLOR_GRAY = GColorFromHEX(0x555555);
 static const GColor COLOR_LIGHT_GRAY = GColorFromHEX(0xAAAAAA);
@@ -115,6 +118,14 @@ static void draw_small_text(GContext *ctx, const char *text, int x, int y,
     }
     x += scale * 4;
   }
+}
+
+static int small_text_width(const char *text, int scale) {
+  int width = 0;
+  for (int character_index = 0; text[character_index]; ++character_index) {
+    width += scale * 4;
+  }
+  return width;
 }
 
 static void draw_large_time(GContext *ctx) {
@@ -283,15 +294,11 @@ static void draw_sync_indicator(GContext *ctx) {
   }
   fill_rect(ctx, GRect(188, 3, 10, 10), color);
 
-  GColor status_color = COLOR_LIGHT_GRAY;
-  if (s_sync_state == 1) {
-    status_color = COLOR_CYAN;
-  } else if (s_sync_state == 2) {
-    status_color = COLOR_LIME;
-  } else if (s_sync_state == 3) {
-    status_color = COLOR_RED;
+  if (s_sync_state == 3) {
+    const int text_right = 184;
+    const int text_x = text_right - small_text_width(s_error_code, 2);
+    draw_small_text(ctx, s_error_code, text_x, 4, 2, COLOR_RED);
   }
-  draw_small_text(ctx, s_error_code, 164, 5, 1, status_color);
 }
 
 static void canvas_update_proc(Layer *layer, GContext *ctx) {
@@ -317,6 +324,8 @@ static void request_sync(void) {
   }
   if (result != APP_MSG_OK) {
     s_sync_state = 3;
+    set_error_code("NET");
+    clear_status();
     if (s_canvas) {
       layer_mark_dirty(s_canvas);
     }
@@ -441,12 +450,16 @@ static void inbox_received_handler(DictionaryIterator *iterator,
 
 static void inbox_dropped_handler(AppMessageResult reason, void *context) {
   s_sync_state = 3;
+  set_error_code("NET");
+  clear_status();
   layer_mark_dirty(s_canvas);
 }
 
 static void outbox_failed_handler(DictionaryIterator *iterator,
                                   AppMessageResult reason, void *context) {
   s_sync_state = 3;
+  set_error_code("NET");
+  clear_status();
   layer_mark_dirty(s_canvas);
 }
 

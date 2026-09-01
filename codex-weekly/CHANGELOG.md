@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.0.10 — 2026-08-31
+
+- Added direct Russian and English Cloud Run deployment-guide links to the settings page.
+
+## 1.0.9 — 2026-08-31
+
+- Added a settings-page button that checks the configured server URL and client token without saving them.
+- Show the reason for a failed sync next to the top-right status square in the same pixel font as `CODEX`, right-aligned before the square.
+- Clear stale quota values when the watch-to-phone sync message cannot be delivered.
+
 ## 1.0.8 — 2026-08-21
 
 - Show the Cloud Run state or a safe error code next to the sync indicator.

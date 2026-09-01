@@ -88,6 +88,34 @@ Node `--env-file`.
 
 ## 4. Развернуть
 
+### Google Cloud Functions Gen 2 (рекомендуемый serverless-вариант)
+
+Этот вариант устойчив к cold start и нескольким function instances: запросы,
+идемпотентность и trigger lease хранятся в Firestore, а все секреты — в Secret
+Manager. Один скрипт включает API, при явном согласии создаёт Firestore,
+создаёт runtime service account, секреты и TTL, затем deploy-ит функцию и
+проверяет health endpoints.
+
+```bash
+./scripts/deploy-google-cloud-function.sh \
+  --project YOUR_GCP_PROJECT \
+  --region europe-west1 \
+  --firestore-location eur3 \
+  --create-firestore \
+  --workspace-agent-trigger-id agtch_YOUR_PUBLISHED_CHANNEL \
+  --print-device-token
+```
+
+Скрипт скроет ввод Workspace Agent token и напечатает `MCP_URL`; device token
+показывается только по явному `--print-device-token` в интерактивном
+терминале. Полная инструкция, IAM-предпосылки, безопасный CI-вариант,
+ротация и ограничения описаны в
+[GCP_FUNCTIONS.md](GCP_FUNCTIONS.md). После deployment всё равно вручную
+создайте private MCP connection в ChatGPT, прикрепите её к агенту и
+перепубликуйте API channel.
+
+### Docker / один постоянный сервер
+
 Нужен стабильный публичный HTTPS URL. Самый простой вариант — один Docker
 instance с persistent volume:
 

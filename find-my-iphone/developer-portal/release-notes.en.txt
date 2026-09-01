@@ -1,0 +1,1 @@
+Initial preview release with direct Find My sound requests, trusted-device 2FA, multiple-iPhone selection, a 650 ms hold guard, multilingual UI and explicit offline, authentication and rate-limit states.

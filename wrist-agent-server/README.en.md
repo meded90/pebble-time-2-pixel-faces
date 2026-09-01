@@ -21,10 +21,37 @@ response text. See the official [trigger-runs documentation](https://developers.
 5. Copy `.env.example` to `.env`, generate independent device-token and
    capability-pepper secrets, and fill every required value.
 6. Run `npm ci && npm run check && npm test`.
-7. Deploy one Docker replica behind HTTPS with a persistent `/app/data` volume.
-8. In ChatGPT developer mode, connect `https://YOUR-HOST/mcp`, verify the
+7. Choose either the managed Cloud Functions Gen 2 deployment or one Docker
+   replica behind HTTPS with a persistent `/app/data` volume.
+8. In ChatGPT developer mode, connect the resulting MCP URL, verify the
    `send_to_pebble` tool, attach the private plugin to the agent, and republish
    the API channel. Follow [Connect and test your plugin](https://developers.openai.com/plugins/deploy/connect-chatgpt).
+
+## Deploy on Cloud Functions Gen 2
+
+The recommended serverless option persists requests, idempotency, and trigger
+leases in Firestore, while Secret Manager holds the Workspace Agent token,
+Pebble device token, and callback pepper. One script configures the required
+GCP resources and verifies the deployment:
+
+```bash
+./scripts/deploy-google-cloud-function.sh \
+  --project YOUR_GCP_PROJECT \
+  --region europe-west1 \
+  --firestore-location eur3 \
+  --create-firestore \
+  --workspace-agent-trigger-id agtch_YOUR_PUBLISHED_CHANNEL \
+  --print-device-token
+```
+
+It accepts the Workspace Agent token through hidden terminal input and prints
+`MCP_URL`; the device token is printed only with explicit
+`--print-device-token` in an interactive terminal. Read
+[GCP_FUNCTIONS.en.md](GCP_FUNCTIONS.en.md) before running it: Firestore
+location is permanent, the guide documents required IAM, safe CI input,
+rotation, and the manual ChatGPT connection step.
+
+## Deploy one Docker replica
 
 ```bash
 docker compose up --build -d

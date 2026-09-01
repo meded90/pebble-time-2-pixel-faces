@@ -67,6 +67,12 @@ async function applyCallback({ store, now }, args) {
       : normalized.outcome;
     request.callbackPayloadHash = replayHash;
     request.status = statusForOutcome(effectiveOutcome);
+    // A callback can beat a lost upstream trigger response. It is already in
+    // possession of the capability, so retaining the encrypted copy would
+    // only extend the amount of sensitive data stored at rest.
+    request.pendingCallbackToken = null;
+    request.triggerLeaseId = null;
+    request.triggerLeaseExpiresAt = 0;
     request.result = {
       shortAnswer: normalized.shortAnswer,
       actionSummary: normalized.actionSummary,

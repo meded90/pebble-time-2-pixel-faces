@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Find My iPhone — UX prototype</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="prototype-shell">
+    <header class="intro">
+      <p class="eyebrow">PEBBLE TIME 2 · CLICKABLE PROTOTYPE</p>
+      <h1>Find My iPhone</h1>
+      <p>Проверьте часы, вход в Apple Account, 2FA и выбор устройства до сборки приложения.</p>
+      <nav class="view-tabs" aria-label="Режим прототипа">
+        <button class="tab is-active" data-view="watch" type="button">⌚ Часы</button>
+        <button class="tab" data-view="phone" type="button">▯ Настройка на iPhone</button>
+      </nav>
+    </header>
+
+    <section class="view is-active" id="watch-view" aria-label="Прототип часов">
+      <div class="watch-workbench">
+        <div class="watch-column">
+          <div class="watch" aria-label="Pebble Time 2">
+            <span class="watch-label">PEBBLE</span>
+            <button class="watch-button back-button" id="back-button" type="button" aria-label="Back"></button>
+            <div class="screen" id="watch-screen">
+              <img class="scene background" src="../resources/images/background-sofa-v5.png" alt="">
+              <img class="scene phone-sprite" id="phone-sprite" src="../resources/images/scene-foreground-v4.png" alt="">
+              <img class="scene cushion-sprite" id="cushion-sprite" alt="">
+              <img class="scene badge" id="badge" alt="">
+              <div class="status-copy">
+                <p class="watch-title" id="watch-title">FIND MY IPHONE</p>
+                <p class="device-name" id="device-name">Kirill’s iPhone</p>
+                <p class="watch-hint" id="watch-hint">HOLD SELECT</p>
+              </div>
+              <div class="hold-track" id="hold-track"><span id="hold-progress"></span></div>
+              <div class="closed-overlay" id="closed-overlay">APP CLOSED<br><small>Press any button</small></div>
+            </div>
+            <div class="side-buttons" aria-label="Кнопки Pebble">
+              <button class="watch-button" id="up-button" type="button" aria-label="Up">▲</button>
+              <button class="watch-button select-button" id="select-button" type="button" aria-label="Select">●</button>
+              <button class="watch-button" id="down-button" type="button" aria-label="Down">▼</button>
+            </div>
+          </div>
+          <p class="gesture-tip">Зажмите среднюю кнопку на 0,65 секунды. Короткое нажатие отменяется.</p>
+        </div>
+
+        <aside class="control-panel">
+          <div class="control-group">
+            <h2>Ответ на следующий запрос</h2>
+            <label class="radio-row"><input type="radio" name="outcome" value="success" checked> Apple приняла команду</label>
+            <label class="radio-row"><input type="radio" name="outcome" value="offline"> Телефон / сеть недоступны</label>
+            <label class="radio-row"><input type="radio" name="outcome" value="auth_expired"> Сессия истекла</label>
+            <label class="radio-row"><input type="radio" name="outcome" value="rate_limited"> Слишком много запросов</label>
+            <label class="radio-row"><input type="radio" name="outcome" value="error"> Неожиданная ошибка</label>
+          </div>
+          <div class="control-group">
+            <h2>Все состояния</h2>
+            <div class="state-grid" id="state-grid"></div>
+          </div>
+          <div class="event-log" aria-live="polite">
+            <span>Последнее событие</span>
+            <strong id="event-log">JS_READY → READY</strong>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section class="view" id="phone-view" aria-label="Прототип настройки на iPhone">
+      <div class="phone-workbench">
+        <div class="iphone-frame">
+          <div class="dynamic-island"></div>
+          <div class="phone-page">
+            <div class="phone-header">
+              <span class="app-icon">⌕</span>
+              <div><strong>Find My iPhone</strong><small>Pebble companion settings</small></div>
+            </div>
+
+            <section class="setup-step is-active" data-setup-step="login">
+              <p class="step-count">ШАГ 1 ИЗ 3</p>
+              <h2>Подключить Apple Account</h2>
+              <p class="muted">Данные отправляются напрямую Apple. Пароль используется только для входа и не сохраняется.</p>
+              <label>Apple Account<input id="apple-id" autocomplete="username" value="kirill@example.com"></label>
+              <label>Пароль<input id="apple-password" type="password" autocomplete="current-password" value="temporary-password"></label>
+              <button class="primary phone-action" data-next-step="two-factor" type="button">Продолжить</button>
+              <div class="privacy-note"><b>Хранится:</b> токены сессии, trust token, cookies, ID выбранного устройства.<br><b>Не хранится:</b> пароль и код 2FA.</div>
+            </section>
+
+            <section class="setup-step" data-setup-step="two-factor">
+              <p class="step-count">ШАГ 2 ИЗ 3</p>
+              <h2>Введите код проверки</h2>
+              <p class="muted">Apple отправила шестизначный код на доверенные устройства.</p>
+              <div class="code-inputs" aria-label="Код 2FA">
+                <input inputmode="numeric" maxlength="1" value="1"><input inputmode="numeric" maxlength="1" value="2"><input inputmode="numeric" maxlength="1" value="3"><input inputmode="numeric" maxlength="1" value="4"><input inputmode="numeric" maxlength="1" value="5"><input inputmode="numeric" maxlength="1" value="6">
+              </div>
+              <button class="primary phone-action" data-next-step="devices" type="button">Проверить код</button>
+              <button class="text-button phone-action" data-next-step="login" type="button">Вернуться</button>
+            </section>
+
+            <section class="setup-step" data-setup-step="devices">
+              <p class="step-count">ШАГ 3 ИЗ 3</p>
+              <h2>Какой iPhone звонит?</h2>
+              <p class="muted">На часах можно переключаться между доступными iPhone кнопками Up и Down.</p>
+              <label class="device-option"><input type="radio" name="device" checked><span class="device-glyph">▯</span><span><b>Kirill’s iPhone</b><small>Этот iPhone · онлайн</small></span><i>✓</i></label>
+              <label class="device-option"><input type="radio" name="device"><span class="device-glyph">▯</span><span><b>Travel iPhone</b><small>В сети</small></span><i>✓</i></label>
+              <button class="primary phone-action" data-next-step="connected" type="button">Сохранить</button>
+            </section>
+
+            <section class="setup-step" data-setup-step="connected">
+              <div class="success-orb">✓</div>
+              <h2>Готово к поиску</h2>
+              <p class="muted">Kirill’s iPhone выбран. Откройте приложение на Pebble и удерживайте Select.</p>
+              <div class="session-card"><span>Сессия Apple</span><b>Активна</b><span>Пароль</span><b>Не сохранён</b><span>Последняя проверка</span><b>Только что</b></div>
+              <button class="secondary phone-action" data-next-step="devices" type="button">Сменить устройство</button>
+              <button class="danger phone-action" data-next-step="login" type="button">Выйти и удалить сессию</button>
+            </section>
+          </div>
+        </div>
+        <aside class="phone-notes">
+          <p class="eyebrow">КОНФИГУРАЦИЯ PEBBLE CORE</p>
+          <h2>Авторизация живёт на телефоне</h2>
+          <p>Часы получают только безопасное состояние, имя устройства и результат запроса. Apple ID, cookies и токены никогда не уходят через AppMessage на Pebble.</p>
+          <div class="flow-list"><span class="is-done">1</span><b>Apple Account</b><span>2</span><b>2FA при необходимости</b><span>3</span><b>Выбор iPhone</b><span>✓</span><b>Сохранённая сессия</b></div>
+        </aside>
+      </div>
+    </section>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,23 @@
+{
+  "title": "Find My iPhone",
+  "type": "watchapp",
+  "category": "Remotes",
+  "version": "0.1.0",
+  "platforms": ["emery"],
+  "descriptionFile": "description.en.txt",
+  "releaseNotesFile": "release-notes.en.txt",
+  "sourceUrl": "https://github.com/meded90/pebble-time-2-pixel-faces/tree/main/find-my-iphone",
+  "websiteUrl": "https://github.com/meded90/pebble-time-2-pixel-faces/tree/main/find-my-iphone",
+  "supportEmail": "TODO: enter the developer support email in the portal",
+  "smallIcon": "icons/icon-48.png",
+  "largeIcon": "icons/icon-144.png",
+  "marketingBanner": "banner/marketing-banner-720x320.png",
+  "screenshots": [
+    "screenshots/emery/01-auth-required-200x228.png",
+    "screenshots/emery/02-ready-200x228.png",
+    "screenshots/emery/03-requesting-200x228.png",
+    "screenshots/emery/04-signal-sent-200x228.png",
+    "screenshots/emery/05-offline-200x228.png"
+  ],
+  "binary": "release/find-my-iphone-0.1.0-emery.pbw"
+}

@@ -1,0 +1,22 @@
+# Only the runtime source and dependency manifests are sent to Cloud Build.
+.git
+.gitignore
+.env
+.env.*
+.npmrc
+*.key
+*.pem
+*.p12
+*.pfx
+data/
+node_modules/
+test/
+scripts/
+Dockerfile
+docker-compose.yml
+README.md
+README.en.md
+SECURITY.md
+AGENT_INSTRUCTIONS.md
+GCP_FUNCTIONS.md
+GCP_FUNCTIONS.en.md

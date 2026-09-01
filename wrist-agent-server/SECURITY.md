@@ -13,14 +13,22 @@
 
 ## Stored data
 
-The file store uses mode `0600` and atomic rename. Accepted dictation text is
-kept only while an upstream trigger is pending or retryable, then removed after
-the trigger is accepted. Compact status, conversation URL, result, and action
-summary are retained for `RETENTION_SECONDS` (24 hours by default). ChatGPT and
-connected-app retention is governed separately by the user's workspace.
+Accepted dictation text is kept only while an upstream trigger is pending or
+retryable, then removed after the trigger is accepted. Compact status,
+conversation URL, result, and action summary are retained for
+`RETENTION_SECONDS` (24 hours by default). ChatGPT and connected-app retention
+is governed separately by the user's workspace.
 
-Use one process/replica with a persistent volume. For multiple replicas, replace
-the file store with a transactional database and conditional updates.
+- The Docker variant uses a file store with mode `0600` and atomic rename. Run
+  exactly one process/replica with a persistent volume.
+- The Google Cloud Functions Gen 2 variant uses Firestore transactions. Request
+  and idempotency documents receive a `purgeAt` timestamp and the deploy script
+  configures Firestore TTL. TTL deletion is asynchronous, so it is a retention
+  cleanup mechanism rather than an immediate authorization control.
+- The Functions variant uses a transactional trigger lease before calling the
+  Workspace Agent. A late instance cannot overwrite a callback or trigger
+  accepted by a different instance; the upstream idempotency key is an
+  additional safeguard.
 
 ## MCP callback
 
@@ -29,6 +37,11 @@ The state-changing `send_to_pebble` tool requires a request-scoped, expiring
 capability in its validated input. Identical replay is idempotent; conflicting
 replay is rejected without revealing whether a request exists. A connection-IP
 rate limit also bounds unauthenticated MCP discovery and malformed calls.
+
+The in-process rate limits are intentionally only a per-instance guard in
+Cloud Functions. For a public production endpoint exposed to untrusted traffic,
+add an organization-approved edge rate limit (for example, Cloud Armor or an
+API gateway) before increasing `--max-instances`.
 
 This capability model is intended for a private developer-mode plugin attached
 to the owner's Workspace Agent. A publicly distributed OpenAI plugin that

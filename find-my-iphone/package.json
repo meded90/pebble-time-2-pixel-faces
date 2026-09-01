@@ -1,0 +1,54 @@
+{
+  "name": "find-my-iphone",
+  "author": "Kirill Baldin",
+  "version": "0.1.0",
+  "description": "Pebble Time 2 client for triggering Find My playSound",
+  "keywords": ["pebble-app", "find-my", "iphone", "emery"],
+  "private": true,
+  "scripts": {
+    "build:assets": "swift tools/build-assets.swift",
+    "test": "node tests/test-package.js && node tests/test-pkjs.js"
+  },
+  "dependencies": {
+    "bn.js": "^5.2.2",
+    "crypto-js": "^4.2.0",
+    "es6-promise": "^4.2.8"
+  },
+  "pebble": {
+    "displayName": "Find My iPhone",
+    "uuid": "1ea8ffd9-0fd5-4bbe-b4b8-bf4589c94806",
+    "sdkVersion": "3",
+    "enableMultiJS": true,
+    "targetPlatforms": ["emery"],
+    "watchapp": {
+      "watchface": false
+    },
+    "capabilities": ["configurable"],
+    "messageKeys": [
+      "COMMAND",
+      "REQUEST_ID",
+      "SELECTED_DEVICE",
+      "STATE",
+      "RESULT",
+      "ERROR_CODE",
+      "DEVICE_COUNT",
+      "DEVICE_NAME",
+      "DEVICE_INDEX",
+      "LOCALE"
+    ],
+    "resources": {
+      "media": [
+        {"type": "png", "name": "IMAGE_BACKGROUND_SOFA", "file": "images/background-sofa-v5.png"},
+        {"type": "png", "name": "IMAGE_SCENE_FOREGROUND", "file": "images/scene-foreground-v4.png"},
+        {"type": "png", "name": "IMAGE_WAVE_1", "file": "images/wave-1-v4.png"},
+        {"type": "png", "name": "IMAGE_WAVE_2", "file": "images/wave-2-v4.png"},
+        {"type": "png", "name": "IMAGE_WAVE_3", "file": "images/wave-3-v4.png"},
+        {"type": "png", "name": "IMAGE_BADGE_SUCCESS", "file": "images/badge-success-v3.png"},
+        {"type": "png", "name": "IMAGE_BADGE_ERROR", "file": "images/badge-error-v3.png"},
+        {"type": "png", "name": "IMAGE_BADGE_AUTH", "file": "images/badge-auth-v3.png"},
+        {"type": "png", "name": "IMAGE_BADGE_OFFLINE", "file": "images/badge-offline-v3.png"},
+        {"type": "png", "name": "IMAGE_MENU_ICON", "file": "images/menu-icon-v3.png", "menuIcon": true}
+      ]
+    }
+  }
+}

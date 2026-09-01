@@ -26,6 +26,14 @@ function integer(name, value, fallback, minimum, maximum) {
   return parsed;
 }
 
+function identifier(name, value, fallback) {
+  const normalized = String(value === undefined || value === '' ? fallback : value).trim();
+  if (!/^[A-Za-z][A-Za-z0-9_-]{2,60}$/.test(normalized)) {
+    throw new Error(`${name} must start with a letter and contain 3-61 letters, digits, underscores, or hyphens`);
+  }
+  return normalized;
+}
+
 function parseDeviceTokens(value) {
   const tokens = required('WRIST_AGENT_DEVICE_TOKENS', value)
     .split(',')
@@ -72,6 +80,8 @@ export function loadConfig(env = process.env) {
   return {
     port: integer('PORT', env.PORT, 8787, 1, 65535),
     dataDir: path.resolve(env.DATA_DIR || './data'),
+    firestoreCollectionPrefix: identifier(
+      'FIRESTORE_COLLECTION_PREFIX', env.FIRESTORE_COLLECTION_PREFIX, 'wrist_agent'),
     publicBaseUrl: normalizePublicBaseUrl(env.PUBLIC_BASE_URL),
     deviceTokens: parseDeviceTokens(env.WRIST_AGENT_DEVICE_TOKENS),
     workspaceAgentTriggerId: triggerId,

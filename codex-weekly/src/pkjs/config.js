@@ -5,7 +5,11 @@ module.exports = [
   },
   {
     type: 'text',
-    defaultValue: 'Deploy your own Cloud Run bridge, then paste its status URL and client token below. See the RU/EN deployment guides in the project repository.'
+    defaultValue: 'Deploy your own Cloud Run bridge, then paste its status URL and client token below.'
+  },
+  {
+    type: 'text',
+    defaultValue: 'Server deployment guides: <a href="https://github.com/meded90/pebble-time-2-pixel-faces/blob/master/codex-weekly/cloud-run/README.md" target="_blank" rel="noopener">Русский</a> · <a href="https://github.com/meded90/pebble-time-2-pixel-faces/blob/master/codex-weekly/cloud-run/README.en.md" target="_blank" rel="noopener">English</a>.'
   },
   {
     type: 'section',
@@ -55,6 +59,18 @@ module.exports = [
             value: '60'
           }
         ]
+      },
+      {
+        type: 'button',
+        id: 'check_server_status',
+        primary: true,
+        defaultValue: 'Check server status',
+        description: 'Tests the URL and client token entered above without saving the settings.'
+      },
+      {
+        type: 'text',
+        id: 'server_status_result',
+        defaultValue: 'Status check has not run yet.'
       }
     ]
   },

@@ -144,7 +144,11 @@ export class RequestStore {
       if (existing) {
         return { created: false, ...existing };
       }
-      await atomicWriteJson(this.requestPath(request.requestId), request);
+      const storedRequest = {
+        ...request,
+        idempotencyHash: idempotency.hash,
+      };
+      await atomicWriteJson(this.requestPath(request.requestId), storedRequest);
       const mapping = {
         schemaVersion: 1,
         requestId: request.requestId,
@@ -153,7 +157,38 @@ export class RequestStore {
         createdAt: this.now(),
       };
       await atomicWriteJson(this.idempotencyPath(idempotency.hash), mapping);
-      return { created: true, request, mapping };
+      return { created: true, request: storedRequest, mapping };
+    });
+  }
+
+  async claimTrigger(requestId, leaseMs) {
+    const duration = Number(leaseMs);
+    if (!Number.isSafeInteger(duration) || duration < 1000) {
+      throw new Error('trigger lease must be at least one second');
+    }
+
+    return this.withLock(`request:${requestId}`, async () => {
+      const request = await this.get(requestId);
+      if (!request) {
+        return { claimed: false, leaseId: null, request: null };
+      }
+
+      const timestamp = this.now();
+      const leaseIsActive = request.status === 'triggering' &&
+        Number(request.triggerLeaseExpiresAt || 0) > timestamp;
+      const triggerable = ['trigger_pending', 'trigger_retryable'].includes(request.status) ||
+        (request.status === 'triggering' && !leaseIsActive);
+      if (!triggerable || request.expiresAt <= timestamp) {
+        return { claimed: false, leaseId: null, request };
+      }
+
+      const leaseId = randomBytes(18).toString('base64url');
+      request.status = 'triggering';
+      request.triggerLeaseId = leaseId;
+      request.triggerLeaseExpiresAt = timestamp + duration;
+      request.updatedAt = timestamp;
+      await atomicWriteJson(this.requestPath(requestId), request);
+      return { claimed: true, leaseId, request };
     });
   }
 

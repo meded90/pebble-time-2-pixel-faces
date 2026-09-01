@@ -29,5 +29,7 @@ test('retention cannot expire a still-confirmable request', () => {
     REQUEST_TTL_SECONDS: '3600',
     RETENTION_SECONDS: '900',
   }), /RETENTION_SECONDS/);
-  assert.equal(loadConfig(validEnv()).requestTtlMs, 900000);
+  const config = loadConfig(validEnv());
+  assert.equal(config.requestTtlMs, 900000);
+  assert.equal(config.firestoreCollectionPrefix, 'wrist_agent');
 });

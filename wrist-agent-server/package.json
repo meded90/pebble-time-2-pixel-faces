@@ -4,17 +4,25 @@
   "description": "Private Pebble bridge for ChatGPT Workspace Agents with an MCP result callback",
   "private": true,
   "type": "module",
+  "main": "src/function.js",
   "engines": {
     "node": ">=22.23.2"
   },
   "scripts": {
     "start": "node --env-file=.env src/server.js",
-    "check": "node --check src/server.js && node --check src/app.js && node --check src/config.js && node --check src/mcp.js && node --check src/store.js && node --check src/workspace-agent-client.js",
-    "test": "node --test"
+    "start:function": "node --env-file=.env ./node_modules/@google-cloud/functions-framework/build/src/main.js --target=wristAgentBridge --source=src/function.js",
+    "check": "node --check src/server.js && node --check src/function.js && node --check src/app.js && node --check src/config.js && node --check src/mcp.js && node --check src/store.js && node --check src/firestore-store.js && node --check src/workspace-agent-client.js",
+    "test": "node --test",
+    "deploy:gcf": "./scripts/deploy-google-cloud-function.sh"
   },
   "dependencies": {
+    "@google-cloud/firestore": "9.0.0",
+    "@google-cloud/functions-framework": "5.0.5",
     "@modelcontextprotocol/sdk": "1.30.0",
     "express": "5.2.1",
     "zod": "4.4.3"
+  },
+  "overrides": {
+    "uuid": "11.1.1"
   }
 }
