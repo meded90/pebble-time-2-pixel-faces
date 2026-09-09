@@ -4,6 +4,72 @@ static Window *s_window;
 static Layer *s_canvas;
 static int s_battery_percent;
 static struct tm s_now;
+static Animation *s_intro;
+static int s_intro_ms;
+static bool s_intro_pending = true;
+
+#define INTRO_DURATION_MS 1050
+#define PANEL_DURATION_MS 650
+
+// Cubic ease-out, a restrained 4% overshoot, then a smooth exact settle.
+static int panel_progress(int delay) {
+  int elapsed = s_intro_ms - delay;
+  if (elapsed <= 0) return 0;
+  if (elapsed >= PANEL_DURATION_MS) return 1000;
+  if (elapsed < 470) {
+    int t = 1000 - elapsed * 1000 / 470;
+    return 1040 * (1000 - t * t / 1000 * t / 1000) / 1000;
+  }
+  int t = (elapsed - 470) * 1000 / 180;
+  int smooth = t * t / 1000 * (3000 - 2 * t) / 1000;
+  return 1040 - 40 * smooth / 1000;
+}
+
+static int interpolate(int from, int to, int progress) {
+  return from + (to - from) * progress / 1000;
+}
+
+static GRect panel_frame(GRect target, int dx, int dy, int delay,
+                         int start_w, int start_h) {
+  int p = panel_progress(delay);
+  return GRect(interpolate(target.origin.x + dx, target.origin.x, p),
+               interpolate(target.origin.y + dy, target.origin.y, p),
+               interpolate(start_w, target.size.w, p),
+               interpolate(start_h, target.size.h, p));
+}
+
+static void intro_update(Animation *animation, AnimationProgress progress) {
+  s_intro_ms = (int32_t)progress * INTRO_DURATION_MS / ANIMATION_NORMALIZED_MAX;
+  layer_mark_dirty(s_canvas);
+}
+
+static void intro_stopped(Animation *animation, bool finished, void *context) {
+  s_intro_ms = INTRO_DURATION_MS;
+  if (s_canvas) layer_mark_dirty(s_canvas);
+}
+
+static const AnimationImplementation INTRO_IMPLEMENTATION = {
+  .update = intro_update,
+};
+
+static void focus_changed(bool in_focus) {
+  if (!in_focus) {
+    if (s_intro) animation_unschedule(s_intro);
+    return;
+  }
+  if (!s_intro_pending || !s_canvas) return;
+  s_intro_pending = false;
+  s_intro = animation_create();
+  if (!s_intro) {
+    intro_stopped(NULL, false, NULL);
+    return;
+  }
+  animation_set_duration(s_intro, INTRO_DURATION_MS);
+  animation_set_curve(s_intro, AnimationCurveLinear);
+  animation_set_implementation(s_intro, &INTRO_IMPLEMENTATION);
+  animation_set_handlers(s_intro, (AnimationHandlers){.stopped = intro_stopped}, NULL);
+  if (!animation_schedule(s_intro)) intro_stopped(s_intro, false, NULL);
+}
 
 // Sampled from Piet Mondrian's "Composition with Red, Blue and Yellow".
 static const GColor COLOR_CREAM = GColorFromHEX(0xE7E7E8);
@@ -148,6 +214,12 @@ static void canvas_update_proc(Layer *layer, GContext *ctx) {
   GRect battery_rect = GRect(0, bottom_y, left_w, bottom_h);
   GRect color_rect = GRect(right_x, bottom_y, right_w, bottom_h);
 
+  time_rect = panel_frame(time_rect, -100, 28, 0, 28, 125);
+  accent_rect = panel_frame(accent_rect, 65, -35, 80, 18, 18);
+  date_rect = panel_frame(date_rect, 65, 25, 160, 30, 45);
+  battery_rect = panel_frame(battery_rect, -85, 30, 240, 35, 12);
+  color_rect = panel_frame(color_rect, 45, 30, 320, 12, 12);
+
   fill_rect(ctx, time_rect, COLOR_CREAM);
   fill_rect(ctx, accent_rect, COLOR_RED);
   fill_rect(ctx, date_rect, COLOR_CREAM);
@@ -165,24 +237,32 @@ static void canvas_update_proc(Layer *layer, GContext *ctx) {
   strftime(hour, sizeof(hour), clock_is_24h_style() ? "%H" : "%I", &s_now);
   strftime(minute, sizeof(minute), "%M", &s_now);
 
-  draw_pixel_number(ctx, hour, GRect(8, 8, left_w - 16, 82),
-                    PIXEL_FONT_VARIANT);
-  draw_pixel_number(ctx, minute, GRect(8, 95, left_w - 16, 82),
-                    PIXEL_FONT_VARIANT);
+  if (s_intro_ms >= PANEL_DURATION_MS) {
+    draw_pixel_number(ctx, hour, GRect(8, 8, left_w - 16, 82),
+                      PIXEL_FONT_VARIANT);
+    draw_pixel_number(ctx, minute, GRect(8, 95, left_w - 16, 82),
+                      PIXEL_FONT_VARIANT);
 
-  char weekday[8];
-  char day[4];
-  strftime(weekday, sizeof(weekday), "%a", &s_now);
-  strftime(day, sizeof(day), "%d", &s_now);
-  draw_text(ctx, weekday, GRect(right_x + 4, 95, right_w - 8, 28),
-            FONT_KEY_GOTHIC_24_BOLD, GColorBlack, GTextAlignmentCenter);
-  draw_text(ctx, day, GRect(right_x + 4, 121, right_w - 8, 28),
-            FONT_KEY_GOTHIC_28_BOLD, GColorBlack, GTextAlignmentCenter);
+  }
 
-  char battery[8];
-  snprintf(battery, sizeof(battery), "%d%%", s_battery_percent);
-  draw_text(ctx, battery, GRect(10, bottom_y + bottom_h - 38, left_w - 20, 30),
-            FONT_KEY_GOTHIC_24_BOLD, COLOR_CREAM, GTextAlignmentLeft);
+  if (s_intro_ms >= PANEL_DURATION_MS + 160) {
+    char weekday[8];
+    char day[4];
+    strftime(weekday, sizeof(weekday), "%a", &s_now);
+    strftime(day, sizeof(day), "%d", &s_now);
+    draw_text(ctx, weekday, GRect(right_x + 4, 95, right_w - 8, 28),
+              FONT_KEY_GOTHIC_24_BOLD, GColorBlack, GTextAlignmentCenter);
+    draw_text(ctx, day, GRect(right_x + 4, 121, right_w - 8, 28),
+              FONT_KEY_GOTHIC_28_BOLD, GColorBlack, GTextAlignmentCenter);
+
+  }
+
+  if (s_intro_ms >= PANEL_DURATION_MS + 240) {
+    char battery[8];
+    snprintf(battery, sizeof(battery), "%d%%", s_battery_percent);
+    draw_text(ctx, battery, GRect(10, bottom_y + bottom_h - 38, left_w - 20, 30),
+              FONT_KEY_GOTHIC_24_BOLD, COLOR_CREAM, GTextAlignmentLeft);
+  }
 }
 
 static void update_time(struct tm *tick_time) {
@@ -207,7 +287,13 @@ static void window_load(Window *window) {
 }
 
 static void window_unload(Window *window) {
+  if (s_intro) {
+    animation_unschedule(s_intro);
+    animation_destroy(s_intro);
+    s_intro = NULL;
+  }
   layer_destroy(s_canvas);
+  s_canvas = NULL;
 }
 
 static void init(void) {
@@ -215,6 +301,9 @@ static void init(void) {
   window_set_window_handlers(s_window, (WindowHandlers) {
     .load = window_load,
     .unload = window_unload,
+  });
+  app_focus_service_subscribe_handlers((AppFocusHandlers) {
+    .did_focus = focus_changed,
   });
   window_stack_push(s_window, true);
 
@@ -227,6 +316,7 @@ static void init(void) {
 }
 
 static void deinit(void) {
+  app_focus_service_unsubscribe();
   tick_timer_service_unsubscribe();
   battery_state_service_unsubscribe();
   window_destroy(s_window);

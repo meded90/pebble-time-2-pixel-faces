@@ -8,7 +8,7 @@
       "type": "watchface",
       "buildGroup": "faces",
       "directory": "mosaic-grid",
-      "sourceVersion": "1.0.2",
+      "sourceVersion": "1.1.0",
       "platforms": ["emery"],
       "preview": "assets/screenshots/mosaic-grid.png",
       "description": {

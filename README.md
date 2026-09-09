@@ -34,7 +34,7 @@ its own UUID, version, source directory, and independently built `.pbw` package.
 
 | Project | Type | Source version | Purpose |
 | --- | --- | --- | --- |
-| [Mosaic Grid](mosaic-grid/) | Watchface | 1.0.2 | Large time in a modernist color grid. |
+| [Mosaic Grid](mosaic-grid/) | Watchface | 1.1.0 | Large time in a modernist color grid. |
 | [Flip Board](flip-board/) | Watchface | 1.2.1 | Configurable mechanical four-panel clock. |
 | [Info Tiles](info-tiles/) | Watchface | 1.0.0 | Time, weather, battery, steps, and heart rate. |
 | [Codex Weekly](codex-weekly/) | Watchface | 1.0.11 | Codex quota and personal usage heatmap. |

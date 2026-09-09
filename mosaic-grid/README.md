@@ -11,6 +11,7 @@ inside a strict modernist grid of contrasting color blocks.
 
 ## Features
 
+- one-shot, 1.05-second launch animation: staggered sliding and resizing panels with a soft overshoot;
 - hours and minutes with the system 12/24-hour preference;
 - weekday and day of month;
 - current watch battery percentage;
