@@ -1,7 +1,7 @@
 {
   "name": "starry-digits",
   "author": "Kirill Baldin",
-  "version": "1.1.0",
+  "version": "1.2.1",
   "keywords": [
     "pebble-app",
     "watchface",
@@ -88,6 +88,14 @@
           "type": "bitmap",
           "name": "IMAGE_DIGIT_9",
           "file": "images/digits/digit-9.png"
+        },
+        {
+          "type": "raw",
+          "name": "INTRO_DATA",
+          "file": "data/intro.bin",
+          "targetPlatforms": [
+            "emery"
+          ]
         }
       ]
     }

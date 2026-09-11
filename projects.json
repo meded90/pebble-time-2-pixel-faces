@@ -100,7 +100,7 @@
       "type": "watchface",
       "buildGroup": "faces",
       "directory": "starry-digits",
-      "sourceVersion": "1.1.0",
+      "sourceVersion": "1.2.1",
       "platforms": ["emery", "gabbro"],
       "preview": "assets/screenshots/starry-digits.png",
       "description": {
@@ -113,9 +113,9 @@
         "url": "https://apps.repebble.com/starry-digits_bacf5a80f08845558f44cf65"
       },
       "artifact": {
-        "status": "published",
-        "version": "1.1.0",
-        "path": "dist/published/starry-digits-1.1.0.pbw"
+        "status": "candidate",
+        "version": "1.2.1",
+        "path": "dist/candidates/starry-digits-1.2.1.pbw"
       }
     },
     {

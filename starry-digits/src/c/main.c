@@ -1,4 +1,5 @@
 #include <pebble.h>
+#include "intro.h"
 
 static Window *s_window;
 static BitmapLayer *s_background_layer;
@@ -112,7 +113,20 @@ static void window_load(Window *window) {
   }
 }
 
+static void window_appear(Window *window) {
+  intro_start(s_background_layer, &s_background_bitmap, s_time_layer);
+}
+
+static void window_disappear(Window *window) {
+  intro_stop();
+}
+
+static void focus_changed(bool in_focus) {
+  if (!in_focus) intro_stop();
+}
+
 static void window_unload(Window *window) {
+  intro_stop();
   if (s_time_layer) {
     layer_destroy(s_time_layer);
   }
@@ -137,12 +151,17 @@ static void init(void) {
   window_set_window_handlers(s_window, (WindowHandlers) {
     .load = window_load,
     .unload = window_unload,
+    .appear = window_appear,
+    .disappear = window_disappear,
   });
+  app_focus_service_subscribe(focus_changed);
   window_stack_push(s_window, true);
   tick_timer_service_subscribe(MINUTE_UNIT, tick_handler);
 }
 
 static void deinit(void) {
+  app_focus_service_unsubscribe();
+  intro_stop();
   tick_timer_service_unsubscribe();
   window_destroy(s_window);
 }

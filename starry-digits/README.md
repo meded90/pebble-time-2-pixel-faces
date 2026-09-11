@@ -36,3 +36,23 @@ None.
 ## All watchfaces
 
 [Mosaic Grid](../mosaic-grid/) · [Flip Board](../flip-board/) · [Info Tiles](../info-tiles/) · [Codex Weekly](../codex-weekly/) · [Starry Digits](../starry-digits/) · [meded90](../meded90/) · [Zodiac: Aquarius](../zodiac-aquarius/) · [Zodiac: Gemini](../zodiac-gemini/)
+
+## Opening animation
+
+Pebble Time 2 plays the approved flowing-sky study once per app launch with 46 reversed flow frames that settle geometrically into the exact original image (approximately five seconds in the SDK emulator), then restores the original background. Losing focus stops playback without replaying it on focus return. Temporary frame memory is freed and no animation timer remains; the clock continues updating once per minute. Pebble Round 2 remains static. Battery impact on physical hardware has not been measured.
+
+Rebuild animation resources with `node tools/build-intro.cjs` (Node.js and the repository Python environment with Pillow). The generator reproduces the approved `previews/animated-sky-v3` renderer with a fixed moon and city. Frames use a lossless delta/LZ pack and a reused framebuffer; delayed callbacks never skip poses. The generator writes a raw reference to `build/intro-reference.bin` for the C decoder round-trip check.
+
+Test package: [`../dist/candidates/starry-digits-1.2.1.pbw`](../dist/candidates/starry-digits-1.2.1.pbw).
+
+Run the native lifecycle tests from the repository root:
+
+```sh
+cc -std=c11 -Wall -Wextra -Werror -DPBL_PLATFORM_EMERY -Istarry-digits/tests starry-digits/tests/intro-lifecycle.c -o /tmp/starry-intro-test
+/tmp/starry-intro-test
+node starry-digits/tools/build-intro.cjs
+cc -std=c11 -Wall -Wextra -Werror -fsanitize=address,undefined starry-digits/tests/codec-roundtrip.c starry-digits/src/c/intro_codec.c -o /tmp/starry-codec-test
+/tmp/starry-codec-test starry-digits/resources/data/intro.bin starry-digits/build/intro-reference.bin
+```
+
+Validation details: [`tests/VALIDATION.md`](tests/VALIDATION.md).

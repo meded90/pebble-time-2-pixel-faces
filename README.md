@@ -38,7 +38,7 @@ its own UUID, version, source directory, and independently built `.pbw` package.
 | [Flip Board](flip-board/) | Watchface | 1.2.1 | Configurable mechanical four-panel clock. |
 | [Info Tiles](info-tiles/) | Watchface | 1.0.0 | Time, weather, battery, steps, and heart rate. |
 | [Codex Weekly](codex-weekly/) | Watchface | 1.0.11 | Codex quota and personal usage heatmap. |
-| [Starry Digits](starry-digits/) | Watchface | 1.1.0 | Hand-drawn digits over a painted night sky; also supports Round 2. |
+| [Starry Digits](starry-digits/) | Watchface | 1.2.1 | Hand-drawn digits over a painted night sky; also supports Round 2. |
 | [meded90](meded90/) | Watchface | 1.0.0 | Pixel portrait with vertically stacked time. |
 | [Zodiac: Aquarius](zodiac-aquarius/) | Watchface | 1.3.0 | Illustrated Aquarius face with vertical time. |
 | [Zodiac: Gemini](zodiac-gemini/) | Watchface | 1.4.0 | Illustrated Gemini face with large digital time. |
